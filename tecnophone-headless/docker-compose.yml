@@ -1,0 +1,15 @@
+services:
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    container_name: tecnophone-meili
+    ports:
+      - '7700:7700'
+    environment:
+      - MEILI_MASTER_KEY=tecnophone-meili-master-key-2024
+      - MEILI_ENV=development
+    volumes:
+      - meili_data:/meili_data
+    restart: unless-stopped
+
+volumes:
+  meili_data:
