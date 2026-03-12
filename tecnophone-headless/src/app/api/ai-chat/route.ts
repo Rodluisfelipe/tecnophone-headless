@@ -175,7 +175,7 @@ suggestedSlugs: array con slugs EXACTOS del catálogo (máx 4). Array vacío si 
 
           const fallbackReply = fallbackParsed.reply || 'No entendí tu pregunta, ¿podrías reformularla? 🤔';
           const fallbackSlugs = Array.isArray(fallbackParsed.suggestedSlugs) ? fallbackParsed.suggestedSlugs : [];
-          const uniqueFallbackSlugs = [...new Set(fallbackSlugs)];
+          const uniqueFallbackSlugs = Array.from(new Set(fallbackSlugs));
           const fallbackProducts: ProductSuggestion[] = products
             .filter((p) => uniqueFallbackSlugs.includes(p.slug))
             .map((p) => ({
