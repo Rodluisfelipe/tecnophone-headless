@@ -117,7 +117,7 @@ export default function TrackingModal({ open, onClose }: { open: boolean; onClos
                 value={guia}
                 onChange={(e) => { setGuia(e.target.value.replace(/\D/g, '')); setError(''); }}
                 placeholder="Ej: 1234567890"
-                className="flex-1 px-4 py-2.5 bg-white border border-surface-300 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all"
+                className="flex-1 px-4 py-2.5 bg-white border border-surface-300 rounded-xl text-gray-900 text-base placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all"
                 maxLength={30}
                 autoComplete="off"
               />

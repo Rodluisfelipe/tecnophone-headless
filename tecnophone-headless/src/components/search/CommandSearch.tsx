@@ -250,7 +250,7 @@ export default function CommandSearch({ open, onClose }: CommandSearchProps) {
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Buscar productos..."
-              className="w-full bg-surface-100 rounded-full pl-10 pr-9 py-2.5 text-[15px] text-gray-900 placeholder-surface-400 outline-none focus:bg-surface-50 focus:ring-2 focus:ring-primary-500/20 transition-all"
+              className="w-full bg-surface-100 rounded-full pl-10 pr-9 py-2.5 text-base text-gray-900 placeholder-surface-400 outline-none focus:bg-surface-50 focus:ring-2 focus:ring-primary-500/20 transition-all"
               autoComplete="off"
               enterKeyHint="search"
             />

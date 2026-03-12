@@ -145,6 +145,53 @@ suggestedSlugs: array con slugs EXACTOS del catálogo (máx 4). Array vacío si 
     if (!groqResponse.ok) {
       const errorText = await groqResponse.text();
       console.error('Groq API error:', groqResponse.status, errorText);
+
+      // If model not found, retry with fallback model
+      if (groqResponse.status === 404 || errorText.includes('model')) {
+        const fallbackResponse = await fetch(GROQ_URL, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${GROQ_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'llama-3.3-70b-versatile',
+            messages,
+            temperature: 0.7,
+            max_tokens: 1024,
+            response_format: { type: 'json_object' },
+          }),
+        });
+
+        if (fallbackResponse.ok) {
+          const fallbackData = await fallbackResponse.json();
+          const fallbackContent = fallbackData.choices?.[0]?.message?.content || '{}';
+          let fallbackParsed: { reply?: string; suggestedSlugs?: string[] };
+          try {
+            fallbackParsed = JSON.parse(fallbackContent);
+          } catch {
+            fallbackParsed = { reply: fallbackContent, suggestedSlugs: [] };
+          }
+
+          const fallbackReply = fallbackParsed.reply || 'No entendí tu pregunta, ¿podrías reformularla? 🤔';
+          const fallbackSlugs = Array.isArray(fallbackParsed.suggestedSlugs) ? fallbackParsed.suggestedSlugs : [];
+          const uniqueFallbackSlugs = [...new Set(fallbackSlugs)];
+          const fallbackProducts: ProductSuggestion[] = products
+            .filter((p) => uniqueFallbackSlugs.includes(p.slug))
+            .map((p) => ({
+              name: p.name,
+              slug: p.slug,
+              image: p.images?.[0]?.src || '',
+              price: p.price,
+              salePrice: p.sale_price || '',
+              onSale: p.on_sale,
+              externalUrl: p.type === 'external' ? p.external_url : undefined,
+            }));
+
+          return NextResponse.json({ reply: fallbackReply, products: fallbackProducts });
+        }
+      }
+
       return NextResponse.json(
         { reply: 'Lo siento, tengo un problema técnico. Intenta de nuevo en unos momentos. 🙏', products: [] },
         { status: 200 }

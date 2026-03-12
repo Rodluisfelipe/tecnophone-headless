@@ -142,7 +142,7 @@ export default function InstantSearch() {
           onFocus={() => { if (results.length > 0) setOpen(true); }}
           onKeyDown={handleKeyDown}
           placeholder="Buscar productos..."
-          className="w-full pl-4 pr-12 py-2.5 bg-white border border-surface-300 rounded-full text-gray-900 placeholder-surface-500 text-sm focus:outline-none focus:bg-surface-50 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all"
+          className="w-full pl-4 pr-12 py-2.5 bg-white border border-surface-300 rounded-full text-gray-900 placeholder-surface-500 text-base focus:outline-none focus:bg-surface-50 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all"
           autoComplete="off"
         />
         <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">

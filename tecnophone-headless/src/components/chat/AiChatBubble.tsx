@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback, FormEvent } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useChatStore } from '@/store/chat';
 
 interface ProductSuggestion {
   name: string;
@@ -154,7 +155,7 @@ function ProductCard({ product }: { product: ProductSuggestion }) {
 
 /* ─── Main Component ─── */
 export default function AiChatBubble() {
-  const [isOpen, setIsOpen] = useState(false);
+  const { isOpen, openChat, closeChat } = useChatStore();
   const [messages, setMessages] = useState<Message[]>([GREETING]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -231,7 +232,7 @@ export default function AiChatBubble() {
     <>
       {/* ─── Chat Panel ─── */}
       {isOpen && (
-        <div className="fixed z-50 inset-x-2 bottom-[76px] top-16 lg:inset-auto lg:bottom-24 lg:right-6 lg:w-[380px] lg:h-[520px] flex flex-col bg-white rounded-2xl shadow-2xl border border-surface-200 overflow-hidden animate-scale-in">
+        <div className="fixed z-50 top-0 left-0 right-0 bottom-[calc(4rem_+_env(safe-area-inset-bottom,0px))] lg:inset-auto lg:bottom-24 lg:right-6 lg:w-[380px] lg:h-[520px] flex flex-col bg-white lg:rounded-2xl shadow-2xl lg:border lg:border-surface-200 overflow-hidden animate-scale-in">
           {/* Header */}
           <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white flex-shrink-0">
             <MascotFace size="sm" />
@@ -240,7 +241,7 @@ export default function AiChatBubble() {
               <p className="text-[10px] text-blue-100">Siempre listo para ayudarte</p>
             </div>
             <button
-              onClick={() => setIsOpen(false)}
+              onClick={closeChat}
               className="w-8 h-8 min-h-0 flex items-center justify-center rounded-full hover:bg-white/20 transition-colors"
               aria-label="Cerrar chat"
             >
@@ -295,7 +296,7 @@ export default function AiChatBubble() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Escribe tu pregunta..."
-              className="flex-1 px-3.5 py-2.5 text-sm bg-surface-50 border border-surface-200 rounded-xl focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/30 min-h-0"
+              className="flex-1 px-3.5 py-2.5 text-base bg-surface-50 border border-surface-200 rounded-xl focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/30 min-h-0"
               disabled={isLoading}
             />
             <button
@@ -313,11 +314,11 @@ export default function AiChatBubble() {
         </div>
       )}
 
-      {/* ─── Floating Mascot Bubble ─── */}
+      {/* ─── Floating Mascot Bubble (desktop only) ─── */}
       {!isOpen && (
         <button
-          onClick={() => setIsOpen(true)}
-          className="fixed bottom-[88px] right-4 lg:bottom-6 lg:right-6 z-50 min-h-0 mascot-bounce group"
+          onClick={openChat}
+          className="fixed hidden lg:block bottom-6 right-6 z-50 min-h-0 mascot-bounce group"
           aria-label="Abrir asistente de TecnoPhone"
         >
           <div className="relative">
