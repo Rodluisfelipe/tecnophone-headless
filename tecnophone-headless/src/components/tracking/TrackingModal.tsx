@@ -180,7 +180,7 @@ export default function TrackingModal({ open, onClose }: { open: boolean; onClos
               {/* First 3 movements */}
               {result.primerosMovimientos && result.primerosMovimientos.length > 0 && (
                 <div className="p-3 rounded-xl bg-surface-50 border border-surface-200">
-                  <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Primeros movimientos</p>
+                  <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Últimos movimientos</p>
                   <ol className="space-y-1">
                     {result.primerosMovimientos.map((mov, idx) => (
                       <li key={idx} className="border-l-2 border-primary-200 pl-3 relative">

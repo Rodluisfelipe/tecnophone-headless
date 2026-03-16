@@ -306,6 +306,7 @@ export const PRODUCT_CARD_FIELDS_SIMPLE = `
     slug
     type
     onSale
+    shortDescription
     price(format: RAW)
     regularPrice(format: RAW)
     salePrice(format: RAW)
@@ -333,6 +334,7 @@ export const PRODUCT_CARD_FIELDS_VARIABLE = `
     slug
     type
     onSale
+    shortDescription
     price(format: RAW)
     regularPrice(format: RAW)
     salePrice(format: RAW)
@@ -360,6 +362,7 @@ export const PRODUCT_CARD_FIELDS_EXTERNAL = `
     slug
     type
     onSale
+    shortDescription
     price(format: RAW)
     regularPrice(format: RAW)
     salePrice(format: RAW)

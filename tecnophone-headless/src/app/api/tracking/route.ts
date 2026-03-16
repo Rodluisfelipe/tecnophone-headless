@@ -154,7 +154,7 @@ function formatResult(data: Record<string, unknown>, guia: string) {
     destino: destinatario?.ciudad || null,
     fechaEnvio: ((data.fechaEnvio as string) || '').trim() || null,
     fechaEntrega: ((data.fechaRealEntrega as string) || '').trim() || null,
-    primerosMovimientos: movimientos.slice(0, 3).map((mov) => ({
+    primerosMovimientos: movimientos.slice(-5).reverse().map((mov) => ({
       descripcion: mov.movimiento || mov.estado || '',
       fecha: mov.fecha || '',
       ubicacion: mov.ubicacion || '',

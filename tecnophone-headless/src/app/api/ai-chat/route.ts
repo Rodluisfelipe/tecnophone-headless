@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
           on_sale: p.on_sale,
           stock_status: p.stock_status,
           image: p.images?.[0]?.src || '',
-          short_description: p.short_description?.replace(/<[^>]*>/g, '').slice(0, 120) || '',
+          short_description: p.short_description?.replace(/<[^>]*>/g, '').slice(0, 500) || '',
           brand: p.brand?.name || '',
         }))
       : [];
