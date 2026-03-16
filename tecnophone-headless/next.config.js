@@ -4,7 +4,7 @@ const meilisearchHost = process.env.NEXT_PUBLIC_MEILISEARCH_HOST || 'http://127.
 const nextConfig = {
   images: {
     formats: ['image/avif', 'image/webp'],
-    deviceSizes: [640, 750, 828, 1080, 1200],
+    deviceSizes: [384, 640, 750, 1080, 1200],
     imageSizes: [16, 32, 48, 64, 96, 128, 256],
     minimumCacheTTL: 31536000,
     remotePatterns: [
@@ -23,6 +23,7 @@ const nextConfig = {
   reactStrictMode: true,
   experimental: {
     optimizePackageImports: ['lucide-react'],
+    optimizeCss: true,
   },
   async headers() {
     return [

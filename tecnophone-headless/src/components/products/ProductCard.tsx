@@ -40,15 +40,11 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
   return (
     <article
       className={cn(
-        'group relative bg-white rounded-2xl overflow-hidden card-hover border border-surface-200 flex flex-col h-full card-shine',
+        'group relative bg-white rounded-2xl overflow-hidden card-hover border border-surface-200 flex flex-col h-full',
         'animate-fade-in-up opacity-0'
       )}
       style={{ animationDelay: `${index * 60}ms`, animationFillMode: 'forwards' }}
-    >
-      {/* Top glow line on hover */}
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
-
-      {/* Image Container */}
+    >\n      {/* Image Container */}
       <Link href={`/producto/${product.slug}`} className="block relative aspect-square overflow-hidden bg-surface-50">
         {product.images?.[0] ? (
           <>
