@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { rateLimit } from '@/lib/rate-limit';
+import { isPositiveInt, isValidEmail, stripHtml, truncate } from '@/lib/validation';
 
 const WP_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://www.tecnophone.co';
 const CK = process.env.WC_CONSUMER_KEY;
@@ -234,6 +236,10 @@ async function restApiCheckout(body: CheckoutBody): Promise<NextResponse> {
 /* ─── Main handler ─── */
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 5 checkout attempts per minute per IP
+    const limited = rateLimit(request, { name: 'checkout', max: 5, windowMs: 60_000 });
+    if (limited) return limited;
+
     if (!CK || !CS) {
       console.error('[Checkout] Missing WC_CONSUMER_KEY or WC_CONSUMER_SECRET');
       return NextResponse.json({ error: 'Error de configuración del servidor' }, { status: 500 });
@@ -241,12 +247,50 @@ export async function POST(request: NextRequest) {
 
     const body: CheckoutBody = await request.json();
 
-    if (!body.line_items?.length) {
+    // ── Validate line_items ──
+    if (!Array.isArray(body.line_items) || body.line_items.length === 0) {
       return NextResponse.json({ error: 'El carrito está vacío' }, { status: 400 });
     }
+    if (body.line_items.length > 20) {
+      return NextResponse.json({ error: 'Demasiados productos (máx 20)' }, { status: 400 });
+    }
+    for (const item of body.line_items) {
+      if (!isPositiveInt(item.product_id) || !isPositiveInt(item.quantity)) {
+        return NextResponse.json({ error: 'Datos de producto inválidos' }, { status: 400 });
+      }
+      if (item.quantity > 100) {
+        return NextResponse.json({ error: 'Cantidad máxima por producto: 100' }, { status: 400 });
+      }
+      if (item.variation_id !== undefined && !isPositiveInt(item.variation_id)) {
+        return NextResponse.json({ error: 'Datos de variación inválidos' }, { status: 400 });
+      }
+    }
 
+    // ── Validate billing ──
     if (!body.billing?.first_name || !body.billing?.email || !body.billing?.phone) {
       return NextResponse.json({ error: 'Faltan datos de facturación' }, { status: 400 });
+    }
+    if (!isValidEmail(body.billing.email)) {
+      return NextResponse.json({ error: 'Email inválido' }, { status: 400 });
+    }
+
+    // ── Sanitize string fields (length limits + strip HTML) ──
+    body.billing.first_name = truncate(stripHtml(body.billing.first_name), 100);
+    body.billing.last_name = truncate(stripHtml(body.billing.last_name || ''), 100);
+    body.billing.email = truncate(body.billing.email.trim(), 254);
+    body.billing.phone = truncate(body.billing.phone.replace(/[^\d+\-() ]/g, ''), 30);
+    body.billing.address_1 = truncate(stripHtml(body.billing.address_1 || ''), 200);
+    body.billing.city = truncate(stripHtml(body.billing.city || ''), 100);
+    body.billing.state = truncate(stripHtml(body.billing.state || ''), 100);
+    if (body.customer_note) {
+      body.customer_note = truncate(stripHtml(body.customer_note), 500);
+    }
+    if (body.shipping) {
+      body.shipping.first_name = truncate(stripHtml(body.shipping.first_name || ''), 100);
+      body.shipping.last_name = truncate(stripHtml(body.shipping.last_name || ''), 100);
+      body.shipping.address_1 = truncate(stripHtml(body.shipping.address_1 || ''), 200);
+      body.shipping.city = truncate(stripHtml(body.shipping.city || ''), 100);
+      body.shipping.state = truncate(stripHtml(body.shipping.state || ''), 100);
     }
 
     // Try Store API first (2-4x faster), fall back to REST API

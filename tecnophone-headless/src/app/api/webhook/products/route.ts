@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Health check
+// Reject non-POST requests
 export async function GET() {
-  return NextResponse.json({ status: 'ok', service: 'woocommerce-meilisearch-webhook' });
+  return new NextResponse(null, { status: 405 });
 }

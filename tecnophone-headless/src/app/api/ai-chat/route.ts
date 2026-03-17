@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { searchProductsDetailed } from '@/lib/woocommerce';
+import { rateLimit } from '@/lib/rate-limit';
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
@@ -54,6 +55,10 @@ function extractKeywords(text: string): string {
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 10 messages per minute per IP (Groq costs money)
+    const limited = rateLimit(request, { name: 'ai-chat', max: 10, windowMs: 60_000 });
+    if (limited) return limited;
+
     const body = await request.json();
     const message: string = body.message?.trim();
     const rawHistory: ChatMessage[] = Array.isArray(body.history) ? body.history : [];

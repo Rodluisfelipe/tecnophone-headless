@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MercadoPagoConfig, Payment } from 'mercadopago';
+import { isPositiveInt, isValidEmail } from '@/lib/validation';
 
 const ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
 
@@ -78,31 +79,51 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ── Verify transaction_amount against WooCommerce order total ──
-    if (body.order_id) {
+    // Validate email format
+    if (!isValidEmail(body.payer.email)) {
+      return NextResponse.json({ error: 'Email inválido' }, { status: 400 });
+    }
+
+    // Validate order_id is a positive integer (prevent path traversal)
+    if (!isPositiveInt(body.order_id)) {
+      return NextResponse.json({ error: 'ID de pedido inválido' }, { status: 400 });
+    }
+
+    // Validate transaction_amount is positive
+    if (typeof body.transaction_amount !== 'number' || body.transaction_amount <= 0) {
+      return NextResponse.json({ error: 'Monto inválido' }, { status: 400 });
+    }
+
+    // ── Verify transaction_amount against WooCommerce order total (MANDATORY) ──
+    {
       const WP_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://www.tecnophone.co';
       const CK = process.env.WC_CONSUMER_KEY;
       const CS = process.env.WC_CONSUMER_SECRET;
-      if (CK && CS) {
-        try {
-          const authHeader = 'Basic ' + Buffer.from(`${CK}:${CS}`).toString('base64');
-          const orderRes = await fetch(`${WP_URL}/wp-json/wc/v3/orders/${body.order_id}`, {
-            headers: { Authorization: authHeader },
-          });
-          if (orderRes.ok) {
-            const orderData = await orderRes.json();
-            const orderTotal = parseFloat(orderData.total);
-            if (Math.abs(orderTotal - body.transaction_amount) > 1) {
-              console.error(`[Payments] Amount mismatch: client=${body.transaction_amount}, order=${orderTotal}`);
-              return NextResponse.json(
-                { error: 'El monto no coincide con el pedido' },
-                { status: 400 }
-              );
-            }
-          }
-        } catch (err) {
-          console.error('[Payments] Order verification failed:', err);
-        }
+      if (!CK || !CS) {
+        return NextResponse.json({ error: 'Error de configuración del servidor' }, { status: 500 });
+      }
+
+      const authHeader = 'Basic ' + Buffer.from(`${CK}:${CS}`).toString('base64');
+      const orderRes = await fetch(`${WP_URL}/wp-json/wc/v3/orders/${body.order_id}`, {
+        headers: { Authorization: authHeader },
+      });
+
+      if (!orderRes.ok) {
+        console.error(`[Payments] Order verification failed: ${orderRes.status}`);
+        return NextResponse.json(
+          { error: 'No se pudo verificar el pedido' },
+          { status: 400 }
+        );
+      }
+
+      const orderData = await orderRes.json();
+      const orderTotal = parseFloat(orderData.total);
+      if (Math.abs(orderTotal - body.transaction_amount) > 1) {
+        console.error(`[Payments] Amount mismatch: client=${body.transaction_amount}, order=${orderTotal}`);
+        return NextResponse.json(
+          { error: 'El monto no coincide con el pedido' },
+          { status: 400 }
+        );
       }
     }
 
@@ -153,6 +174,8 @@ async function updateWCOrderStatus(
   status: string,
   paymentId?: string
 ) {
+  if (!Number.isInteger(orderId) || orderId <= 0) return;
+
   const WP_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://www.tecnophone.co';
   const CK = process.env.WC_CONSUMER_KEY;
   const CS = process.env.WC_CONSUMER_SECRET;

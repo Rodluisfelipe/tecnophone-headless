@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getProducts } from '@/lib/woocommerce';
+import { rateLimit } from '@/lib/rate-limit';
+import { ALLOWED_ORDERBY } from '@/lib/validation';
 
 export async function GET(request: NextRequest) {
+  // Rate limit: 30 product list requests per minute per IP
+  const limited = rateLimit(request, { name: 'products', max: 30, windowMs: 60_000 });
+  if (limited) return limited;
+
   const searchParams = request.nextUrl.searchParams;
 
   const page = parseInt(searchParams.get('page') || '1');
@@ -9,9 +15,10 @@ export async function GET(request: NextRequest) {
   const category = searchParams.get('category')
     ? parseInt(searchParams.get('category')!)
     : undefined;
-  const search = searchParams.get('search') || undefined;
-  const orderby = searchParams.get('orderby') || 'date';
-  const order = searchParams.get('order') || 'desc';
+  const search = searchParams.get('search')?.slice(0, 200) || undefined;
+  const rawOrderby = searchParams.get('orderby') || 'date';
+  const orderby = ALLOWED_ORDERBY.has(rawOrderby) ? rawOrderby : 'date';
+  const order = searchParams.get('order') === 'asc' ? 'asc' : 'desc';
   const on_sale = searchParams.get('on_sale') === 'true';
   const featured = searchParams.get('featured') === 'true';
   const min_price = searchParams.get('min_price')

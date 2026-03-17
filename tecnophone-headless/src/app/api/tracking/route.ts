@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { rateLimit } from '@/lib/rate-limit';
 
 /* ── Edge Runtime — se ejecuta en Bogotá (bog1), IP colombiana ── */
 export const runtime = 'edge';
@@ -8,6 +9,10 @@ export const dynamic = 'force-dynamic';
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
 export async function GET(req: NextRequest) {
+  // Rate limit: 10 tracking lookups per minute per IP
+  const limited = rateLimit(req, { name: 'tracking', max: 10, windowMs: 60_000 });
+  if (limited) return limited;
+
   const guia = req.nextUrl.searchParams.get('guia')?.trim();
 
   if (!guia || !/^\d{6,30}$/.test(guia)) {

@@ -1,14 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { searchProducts } from '@/lib/woocommerce';
 import { getSearchClient, isAlgoliaConfigured, INDEX_NAME } from '@/lib/algolia';
+import { rateLimit } from '@/lib/rate-limit';
 
 export async function GET(request: NextRequest) {
+  // Rate limit: 30 searches per minute per IP
+  const limited = rateLimit(request, { name: 'search', max: 30, windowMs: 60_000 });
+  if (limited) return limited;
+
   const query = request.nextUrl.searchParams.get('q');
   const limit = Math.min(parseInt(request.nextUrl.searchParams.get('limit') || '20', 10), 100);
 
   if (!query || query.trim().length < 1) {
     return NextResponse.json({ products: [], total: 0 });
   }
+
+  // Limit query length to prevent abuse
+  const trimmedQuery = query.trim().slice(0, 200);
 
   // Try Algolia first (if configured)
   if (isAlgoliaConfigured()) {
@@ -17,7 +25,7 @@ export async function GET(request: NextRequest) {
       const result = await client.searchSingleIndex({
         indexName: INDEX_NAME,
         searchParams: {
-          query: query.trim(),
+          query: trimmedQuery,
           hitsPerPage: limit,
           attributesToHighlight: ['name'],
           highlightPreTag: '<mark class="bg-yellow-200">',
@@ -43,7 +51,7 @@ export async function GET(request: NextRequest) {
   // Fallback: WooCommerce GraphQL
   try {
     const start = Date.now();
-    const products = await searchProducts(query.trim(), limit);
+    const products = await searchProducts(trimmedQuery, limit);
     const processingTimeMs = Date.now() - start;
 
     const hits = products.map((p) => ({

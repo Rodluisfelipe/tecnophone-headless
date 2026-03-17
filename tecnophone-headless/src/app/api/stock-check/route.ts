@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { rateLimit } from '@/lib/rate-limit';
+import { isPositiveInt } from '@/lib/validation';
 
 const WP_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://www.tecnophone.co';
 const CK = process.env.WC_CONSUMER_KEY;
@@ -12,8 +14,12 @@ interface StockCheckItem {
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 15 stock checks per minute per IP
+    const limited = rateLimit(request, { name: 'stock-check', max: 15, windowMs: 60_000 });
+    if (limited) return limited;
+
     if (!CK || !CS) {
-      return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });
+      return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
     }
 
     const { items }: { items: StockCheckItem[] } = await request.json();
@@ -28,6 +34,16 @@ export async function POST(request: NextRequest) {
         { error: 'Demasiados items (máx 20)' },
         { status: 400 }
       );
+    }
+
+    // Validate each item has positive integer IDs (prevent path traversal)
+    for (const item of items) {
+      if (!isPositiveInt(item.product_id) || !isPositiveInt(item.quantity)) {
+        return NextResponse.json({ error: 'Datos de producto inválidos' }, { status: 400 });
+      }
+      if (item.variation_id !== undefined && !isPositiveInt(item.variation_id)) {
+        return NextResponse.json({ error: 'Datos de variación inválidos' }, { status: 400 });
+      }
     }
 
     const authHeader = 'Basic ' + Buffer.from(`${CK}:${CS}`).toString('base64');

@@ -1,6 +1,4 @@
 /** @type {import('next').NextConfig} */
-const meilisearchHost = process.env.NEXT_PUBLIC_MEILISEARCH_HOST || 'http://127.0.0.1:7700';
-
 const nextConfig = {
   images: {
     formats: ['image/avif', 'image/webp'],
@@ -42,7 +40,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://http2.mlstatic.com https://fonts.googleapis.com",
               "img-src 'self' data: blob: https://www.tecnophone.co https://tecnophone.co https://http2.mlstatic.com https://*.mercadolibre.com",
               "font-src 'self' https://fonts.gstatic.com https://http2.mlstatic.com",
-              "connect-src 'self' https://www.tecnophone.co https://tecnophone.co https://api.mercadopago.com https://events.mercadopago.com https://api.groq.com " + meilisearchHost,
+              "connect-src 'self' https://www.tecnophone.co https://tecnophone.co https://api.mercadopago.com https://events.mercadopago.com https://api.groq.com https://*.algolia.net https://*.algolianet.com",
               "frame-src 'self' https://sdk.mercadopago.com https://www.mercadopago.com https://www.mercadopago.com.co",
               "object-src 'none'",
               "base-uri 'self'",
