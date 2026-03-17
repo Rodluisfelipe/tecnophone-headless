@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import {
   Laptop,
   Smartphone,
@@ -172,7 +172,7 @@ export default async function HomePage() {
 
       {/* ===== TRUST FEATURES BAR ===== */}
       <section className="bg-white lg:bg-surface-100 border-b border-surface-200">
-        <div className="px-4 sm:px-6 lg:px-8 max-w-[1800px] mx-auto">
+        <div className="px-4 sm:px-6 lg:px-8 max-w-[1550px] mx-auto">
           {/* Mobile: compact horizontal scroll */}
           <div className="flex items-center gap-4 py-3 overflow-x-auto scrollbar-hide lg:hidden" style={{ scrollbarWidth: 'none' }}>
             {[
@@ -212,7 +212,7 @@ export default async function HomePage() {
 
       {/* ===== CATEGORIES ===== */}
       <section className="bg-white border-b border-surface-200">
-        <div className="px-4 sm:px-6 lg:px-8 max-w-[1800px] mx-auto">
+        <div className="px-4 sm:px-6 lg:px-8 max-w-[1550px] mx-auto">
           {/* Mobile: circular icons */}
           <div className="flex gap-4 py-4 overflow-x-auto scrollbar-hide lg:hidden" style={{ scrollbarWidth: 'none' }}>
             {showCategories.map((cat) => {
@@ -253,7 +253,7 @@ export default async function HomePage() {
       {/* ===== SECONDARY BANNERS (SBANNER) — Desktop only (mobile banners distributed below) ===== */}
       {sbanners.length > 0 && (
         <section className="hidden lg:block py-6 bg-white">
-          <div className="px-4 sm:px-6 lg:px-8 max-w-[1800px] mx-auto">
+          <div className="px-4 sm:px-6 lg:px-8 max-w-[1550px] mx-auto">
             <div className={`grid gap-4 ${
               sbanners.length === 3 ? 'grid-cols-3' :
               sbanners.length === 2 ? 'grid-cols-2' : 'grid-cols-1'
@@ -303,7 +303,7 @@ export default async function HomePage() {
       {/* ===== LATEST PRODUCTS ===== */}
       {latestProducts.length > 0 && (
         <section className="py-6 lg:py-16 bg-white">
-          <div className="px-4 sm:px-6 lg:px-8 max-w-[1800px] mx-auto">
+          <div className="px-4 sm:px-6 lg:px-8 max-w-[1550px] mx-auto">
             <div className="flex items-end justify-between mb-5 lg:mb-8">
               <div>
                 <span className="inline-block bg-primary-600 text-white text-[10px] lg:text-xs font-bold px-2.5 lg:px-3 py-1 rounded mb-1.5 lg:mb-2 uppercase tracking-wider">
@@ -367,7 +367,7 @@ export default async function HomePage() {
       {/* ===== PRODUCT OF THE DAY ===== */}
       {pddProduct && (
         <section className="py-6 lg:py-16 bg-surface-50 border-y border-surface-200" style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 500px' }}>
-          <div className="px-4 sm:px-6 lg:px-8 max-w-[1800px] mx-auto">
+          <div className="px-4 sm:px-6 lg:px-8 max-w-[1550px] mx-auto">
             <div className="flex items-center gap-2.5 lg:gap-3 mb-5 lg:mb-8">
               <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl bg-amber-100 flex items-center justify-center">
                 <Flame className="w-4 h-4 lg:w-5 lg:h-5 text-amber-500" />
@@ -458,7 +458,7 @@ export default async function HomePage() {
         if (largeBanners.length === 0) return null;
         return (
           <section className="bg-white">
-            <div className="px-4 sm:px-6 lg:px-8 max-w-[1800px] mx-auto">
+            <div className="px-4 sm:px-6 lg:px-8 max-w-[1550px] mx-auto">
               {largeBanners.map((lb, idx) => (
                 <Link
                   key={idx}
@@ -482,7 +482,7 @@ export default async function HomePage() {
 
       {/* ===== STATS / INVENTORY BANNER ===== */}
       <section className="bg-surface-50 py-12 lg:py-16 relative overflow-hidden border-y border-surface-200" style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 300px' }}>
-        <div className="px-4 sm:px-6 lg:px-8 max-w-[1800px] mx-auto relative z-10">
+        <div className="px-4 sm:px-6 lg:px-8 max-w-[1550px] mx-auto relative z-10">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 text-center">
             {[
               { value: '25+', label: 'Marcas Oficiales', icon: BadgeCheck },
@@ -510,7 +510,7 @@ export default async function HomePage() {
       {/* ===== SALE PRODUCTS ===== */}
       {saleProducts.length > 0 && (
         <section className="py-6 lg:py-16 bg-white" style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 800px' }}>
-          <div className="px-4 sm:px-6 lg:px-8 max-w-[1800px] mx-auto">
+          <div className="px-4 sm:px-6 lg:px-8 max-w-[1550px] mx-auto">
             <div className="flex items-end justify-between mb-5 lg:mb-8">
               <div>
                 <span className="inline-flex items-center gap-1.5 bg-red-600 text-white text-[10px] lg:text-xs font-bold px-2.5 lg:px-3 py-1 rounded mb-1.5 lg:mb-2 uppercase tracking-wider">
@@ -553,7 +553,7 @@ export default async function HomePage() {
       {/* ===== BRANDS BAR ===== */}
       {brands.length > 0 && (
         <section className="py-10 lg:py-14 bg-surface-50 border-y border-surface-200" style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 200px' }}>
-          <div className="px-4 sm:px-6 lg:px-8 max-w-[1800px] mx-auto text-center mb-6">
+          <div className="px-4 sm:px-6 lg:px-8 max-w-[1550px] mx-auto text-center mb-6">
             <h2 className="text-xl lg:text-2xl font-extrabold text-gray-900">Marcas Oficiales</h2>
           </div>
           <div className="overflow-hidden">
@@ -587,7 +587,7 @@ export default async function HomePage() {
         <div className="absolute -left-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
         <div className="absolute -right-10 -bottom-10 w-60 h-60 bg-white/5 rounded-full blur-3xl" />
 
-        <div className="px-4 sm:px-6 lg:px-8 max-w-[1800px] mx-auto relative z-10">
+        <div className="px-4 sm:px-6 lg:px-8 max-w-[1550px] mx-auto relative z-10">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8 text-center lg:text-left">
             <div>
               <h2 className="text-2xl lg:text-4xl font-black text-white font-display leading-tight">
@@ -600,7 +600,7 @@ export default async function HomePage() {
             </div>
             <div className="flex flex-wrap justify-center gap-4">
               <a
-                href="https://wa.me/573132294533?text=Hola%2C%20necesito%20asesoría%20para%20elegir%20un%20producto"
+                href="https://wa.me/573132294533?text=Hola%2C%20necesito%20asesor%C3%ADa%20para%20elegir%20un%20producto"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl shadow-emerald-500/25 hover:shadow-2xl transition-all hover:-translate-y-0.5"
