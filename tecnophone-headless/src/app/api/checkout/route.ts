@@ -53,48 +53,7 @@ export async function POST(request: NextRequest) {
 
     const authHeader = 'Basic ' + Buffer.from(`${CK}:${CS}`).toString('base64');
 
-    // ── Stock check (batch: single WC call for simple products + parallel for variations) ──
-    const simpleIds = body.line_items.filter((i) => !i.variation_id).map((i) => i.product_id);
-    const variationItems = body.line_items.filter((i) => i.variation_id);
-
-    const stockFetches: Promise<{ id: number; stock_status: string; manage_stock: boolean; stock_quantity: number | null; name: string }[]>[] = [];
-
-    // Batch fetch all simple products in ONE call
-    if (simpleIds.length > 0) {
-      stockFetches.push(
-        fetch(`${WP_URL}/wp-json/wc/v3/products?include=${simpleIds.join(',')}&per_page=${simpleIds.length}&_fields=id,name,stock_status,manage_stock,stock_quantity`, {
-          headers: { Authorization: authHeader },
-        }).then((r) => r.ok ? r.json() : [])
-      );
-    }
-
-    // Fetch variations in parallel
-    const variationFetches = variationItems.map((item) =>
-      fetch(`${WP_URL}/wp-json/wc/v3/products/${item.product_id}/variations/${item.variation_id}?_fields=id,name,stock_status,manage_stock,stock_quantity`, {
-        headers: { Authorization: authHeader },
-      }).then((r) => r.ok ? r.json().then((v) => [v]) : [])
-    );
-
-    const allResults = await Promise.all([...stockFetches, ...variationFetches]);
-    const allProducts = allResults.flat();
-
-    const stockIssues: string[] = [];
-    for (const item of body.line_items) {
-      const checkId = item.variation_id || item.product_id;
-      const prod = allProducts.find((p: { id: number }) => p.id === checkId);
-      if (!prod) continue;
-      if (prod.stock_status === 'outofstock') {
-        stockIssues.push(`${prod.name || `Producto #${item.product_id}`}: Agotado`);
-      } else if (prod.manage_stock && prod.stock_quantity !== null && prod.stock_quantity < item.quantity) {
-        stockIssues.push(`${prod.name || `Producto #${item.product_id}`}: Solo quedan ${prod.stock_quantity} unidades`);
-      }
-    }
-
-    if (stockIssues.length > 0) {
-      return NextResponse.json({ error: `Problemas de disponibilidad:\n${stockIssues.join('\n')}` }, { status: 409 });
-    }
-
-    // ── Create order ──
+    // ── Create order (WooCommerce validates stock internally) ──
     const isBacs = body.payment_method === 'bacs';
 
     // Create WooCommerce order via REST API
@@ -135,6 +94,16 @@ export async function POST(request: NextRequest) {
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
       console.error('[Checkout] WooCommerce error:', res.status, errorData);
+
+      // WooCommerce returns stock errors in the message
+      const msg = errorData?.message || '';
+      if (msg.toLowerCase().includes('stock') || msg.toLowerCase().includes('agotado') || res.status === 409) {
+        return NextResponse.json(
+          { error: msg || 'Uno o más productos no tienen stock suficiente.' },
+          { status: 409 }
+        );
+      }
+
       return NextResponse.json(
         { error: 'Error al crear el pedido. Intenta de nuevo.' },
         { status: 500 }
