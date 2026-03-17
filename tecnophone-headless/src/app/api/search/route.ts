@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { searchProducts } from '@/lib/woocommerce';
+import { getSearchClient, isAlgoliaConfigured, INDEX_NAME } from '@/lib/algolia';
 
 export async function GET(request: NextRequest) {
   const query = request.nextUrl.searchParams.get('q');
@@ -9,12 +10,42 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ products: [], total: 0 });
   }
 
+  // Try Algolia first (if configured)
+  if (isAlgoliaConfigured()) {
+    try {
+      const client = getSearchClient();
+      const result = await client.searchSingleIndex({
+        indexName: INDEX_NAME,
+        searchParams: {
+          query: query.trim(),
+          hitsPerPage: limit,
+          attributesToHighlight: ['name'],
+          highlightPreTag: '<mark class="bg-yellow-200">',
+          highlightPostTag: '</mark>',
+        },
+      });
+
+      const hits = (result.hits || []).map((hit) => ({
+        ...hit,
+        _formatted: { name: (hit._highlightResult as Record<string, { value?: string }>)?.name?.value || (hit as Record<string, unknown>).name },
+      }));
+
+      return NextResponse.json({
+        products: hits,
+        total: result.nbHits || hits.length,
+        processingTimeMs: result.processingTimeMS || 0,
+      });
+    } catch (error) {
+      console.warn('[Search] Algolia error, falling back to WooCommerce:', (error as Error).message);
+    }
+  }
+
+  // Fallback: WooCommerce GraphQL
   try {
     const start = Date.now();
     const products = await searchProducts(query.trim(), limit);
     const processingTimeMs = Date.now() - start;
 
-    // Map WCProduct → SearchHit shape expected by frontend
     const hits = products.map((p) => ({
       id: p.id,
       name: p.name,

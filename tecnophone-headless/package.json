@@ -7,10 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "sync:meili": "npx tsx scripts/sync-meilisearch.ts"
+    "sync:meili": "npx tsx scripts/sync-meilisearch.ts",
+    "sync:algolia": "npx tsx scripts/sync-algolia.ts"
   },
   "dependencies": {
     "@mercadopago/sdk-react": "^1.0.7",
+    "algoliasearch": "^5.49.2",
     "clsx": "^2.1.0",
     "lucide-react": "^0.400.0",
     "meilisearch": "^0.55.0",
