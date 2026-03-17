@@ -1,47 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { searchProducts as meiliSearch } from '@/lib/meilisearch';
-import { searchProducts as wcSearch } from '@/lib/woocommerce';
+import { searchProducts } from '@/lib/woocommerce';
 
 export async function GET(request: NextRequest) {
   const query = request.nextUrl.searchParams.get('q');
-  const filter = request.nextUrl.searchParams.get('filter') || undefined;
-  const sort = request.nextUrl.searchParams.get('sort') || undefined;
   const limit = Math.min(parseInt(request.nextUrl.searchParams.get('limit') || '20', 10), 100);
-  const offset = parseInt(request.nextUrl.searchParams.get('offset') || '0', 10);
 
   if (!query || query.trim().length < 1) {
-    return NextResponse.json({ products: [], total: 0, facets: {} });
+    return NextResponse.json({ products: [], total: 0 });
   }
 
   try {
-    // Try Meilisearch first with 3s timeout
-    const result = await Promise.race([
-      meiliSearch(query.trim(), {
-        limit,
-        offset,
-        filter: filter || undefined,
-        sort: sort ? [sort] : undefined,
-        facets: ['categories', 'brand_name', 'on_sale'],
-      }),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Meilisearch timeout')), 3000)
-      ),
-    ]);
+    const start = Date.now();
+    const products = await searchProducts(query.trim(), limit);
+    const processingTimeMs = Date.now() - start;
+
+    // Map WCProduct → SearchHit shape expected by frontend
+    const hits = products.map((p) => ({
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      price: p.price,
+      regular_price: p.regular_price,
+      sale_price: p.sale_price,
+      on_sale: p.on_sale,
+      image_src: p.images?.[0]?.src || '',
+      image_alt: p.images?.[0]?.alt || p.name,
+      brand_name: p.brand?.name || '',
+      category_names: (p.categories || []).map((c) => c.name).filter(Boolean),
+      price_numeric: parseFloat(p.price) || 0,
+    }));
 
     return NextResponse.json({
-      products: result.hits,
-      total: result.estimatedTotalHits,
-      facets: result.facetDistribution || {},
-      processingTimeMs: result.processingTimeMs,
+      products: hits,
+      total: hits.length,
+      processingTimeMs,
     });
   } catch (error) {
-    // Fallback to WooCommerce GraphQL if Meilisearch is unavailable
-    console.warn('[Search] Meilisearch unavailable, falling back to WooCommerce:', (error as Error).message);
-    try {
-      const products = await wcSearch(query.trim(), limit);
-      return NextResponse.json({ products, total: products.length, facets: {}, fallback: true });
-    } catch {
-      return NextResponse.json({ products: [], total: 0, facets: {} });
-    }
+    console.error('[Search] Error:', (error as Error).message);
+    return NextResponse.json({ products: [], total: 0 });
   }
 }
