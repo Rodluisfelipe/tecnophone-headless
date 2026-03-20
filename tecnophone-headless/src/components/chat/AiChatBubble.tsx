@@ -76,7 +76,7 @@ function TypingDots() {
 }
 
 /* ─── Product Card ─── */
-function ProductCard({ product }: { product: ProductSuggestion }) {
+function ProductCard({ product, onNavigate }: { product: ProductSuggestion; onNavigate?: () => void }) {
   const formatPrice = (price: string) => {
     const num = parseInt(price, 10);
     if (isNaN(num)) return price;
@@ -91,7 +91,7 @@ function ProductCard({ product }: { product: ProductSuggestion }) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const wrapperProps: any = hasExternalUrl 
     ? { href: product.externalUrl, target: "_blank", rel: "noopener noreferrer" } 
-    : { href: `/producto/${product.slug}` };
+    : { href: `/producto/${product.slug}`, onClick: onNavigate };
 
   return (
     <Wrapper
@@ -271,7 +271,7 @@ export default function AiChatBubble() {
                   {msg.products && msg.products.length > 0 && (
                     <div className="mt-2 space-y-2">
                       {msg.products.map((p) => (
-                        <ProductCard key={p.slug} product={p} />
+                        <ProductCard key={p.slug} product={p} onNavigate={closeChat} />
                       ))}
                     </div>
                   )}
