@@ -153,7 +153,7 @@ async function updateWCOrderStatus(
   setPaid: boolean,
   paymentId: string
 ) {
-  const WP_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://www.tecnophone.co';
+  const WP_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://wp.tecnophone.co';
   const CK = process.env.WC_CONSUMER_KEY;
   const CS = process.env.WC_CONSUMER_SECRET;
 

@@ -24,7 +24,7 @@ En WordPress Admin → WooCommerce → Ajustes → Avanzado → REST API:
 Editar `.env.local`:
 
 ```env
-NEXT_PUBLIC_WORDPRESS_URL=https://www.tecnophone.co
+NEXT_PUBLIC_WORDPRESS_URL=https://wp.tecnophone.co
 WC_CONSUMER_KEY=ck_tu_consumer_key
 WC_CONSUMER_SECRET=cs_tu_consumer_secret
 ```
@@ -63,18 +63,6 @@ src/
 └── types/
     └── woocommerce.ts      # Tipos TypeScript
 ```
-
-## Ventajas vs Oklahoma Computadores
-
-| Característica | Oklahoma (Vue SPA) | TecnoPhone (Next.js SSR) |
-|---|---|---|
-| SEO | ❌ SPA sin SSR | ✅ SSR/SSG/ISR completo |
-| Velocidad inicial | ❌ JS pesado | ✅ HTML pre-renderizado |
-| Meta tags dinámicos | ❌ No | ✅ Sí, por producto |
-| Open Graph | ❌ Básico | ✅ Completo por página |
-| Errores JS | ❌ windowWidth bug | ✅ Sin errores |
-| Optimización imágenes | ❌ Manual | ✅ next/image automático |
-| Caché inteligente | ❌ No | ✅ ISR cada 5 min |
 
 ## Producción
 

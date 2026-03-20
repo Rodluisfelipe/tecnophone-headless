@@ -291,7 +291,7 @@ async function getProductBrandMap(): Promise<Map<number, { id: number; name: str
   const cached = getCached<Map<number, { id: number; name: string; slug: string }>>(cacheKey);
   if (cached) return cached;
 
-  const baseUrl = process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://www.tecnophone.co';
+  const baseUrl = process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://wp.tecnophone.co';
   const ck = process.env.WC_CONSUMER_KEY || '';
   const cs = process.env.WC_CONSUMER_SECRET || '';
   const brandMap = new Map<number, { id: number; name: string; slug: string }>();
@@ -353,7 +353,7 @@ export async function getBrands(): Promise<WCBrand[]> {
   const cached = getCached<WCBrand[]>(cacheKey);
   if (cached) return cached;
 
-  const baseUrl = process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://www.tecnophone.co';
+  const baseUrl = process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://wp.tecnophone.co';
   const ck = process.env.WC_CONSUMER_KEY || '';
   const cs = process.env.WC_CONSUMER_SECRET || '';
   const url = `${baseUrl}/wp-json/wc/v3/products/brands?per_page=100`;

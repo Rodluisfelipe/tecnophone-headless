@@ -8,6 +8,10 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
+        hostname: 'wp.tecnophone.co',
+      },
+      {
+        protocol: 'https',
         hostname: 'www.tecnophone.co',
       },
       {
@@ -38,9 +42,9 @@ const nextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://sdk.mercadopago.com https://http2.mlstatic.com",
               "style-src 'self' 'unsafe-inline' https://http2.mlstatic.com https://fonts.googleapis.com",
-              "img-src 'self' data: blob: https://www.tecnophone.co https://tecnophone.co https://http2.mlstatic.com https://*.mercadolibre.com",
+              "img-src 'self' data: blob: https://wp.tecnophone.co https://www.tecnophone.co https://tecnophone.co https://http2.mlstatic.com https://*.mercadolibre.com",
               "font-src 'self' https://fonts.gstatic.com https://http2.mlstatic.com",
-              "connect-src 'self' https://www.tecnophone.co https://tecnophone.co https://api.mercadopago.com https://events.mercadopago.com https://api.groq.com https://*.algolia.net https://*.algolianet.com",
+              "connect-src 'self' https://wp.tecnophone.co https://www.tecnophone.co https://tecnophone.co https://api.mercadopago.com https://events.mercadopago.com https://api.groq.com https://*.algolia.net https://*.algolianet.com",
               "frame-src 'self' https://sdk.mercadopago.com https://www.mercadopago.com https://www.mercadopago.com.co",
               "object-src 'none'",
               "base-uri 'self'",

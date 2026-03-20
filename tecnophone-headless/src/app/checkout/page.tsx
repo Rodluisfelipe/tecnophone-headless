@@ -54,7 +54,8 @@ export default function CheckoutPage() {
   const [error, setError] = useState('');
   const [step, setStep] = useState<CheckoutStep>('info');
   const [orderData, setOrderData] = useState<OrderData | null>(null);
-  const mpEnabled = !!process.env.NEXT_PUBLIC_MP_PUBLIC_KEY;
+  const mpKey = process.env.NEXT_PUBLIC_MP_PUBLIC_KEY || '';
+  const mpEnabled = mpKey.length > 10 && mpKey.startsWith('APP_USR-');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('bacs');
 
   const [form, setForm] = useState({

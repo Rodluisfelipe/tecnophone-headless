@@ -13,13 +13,13 @@ config({ path: '.env.local' });
 
 import { algoliasearch } from 'algoliasearch';
 
-const GRAPHQL_URL = process.env.NEXT_PUBLIC_GRAPHQL_URL || 'https://www.tecnophone.co/graphql';
+const GRAPHQL_URL = process.env.NEXT_PUBLIC_GRAPHQL_URL || 'https://wp.tecnophone.co/graphql';
 const APP_ID = process.env.NEXT_PUBLIC_ALGOLIA_APP_ID || '';
 const ADMIN_KEY = process.env.ALGOLIA_ADMIN_KEY || '';
 const INDEX = 'products';
 const WC_KEY = process.env.WC_CONSUMER_KEY || '';
 const WC_SECRET = process.env.WC_CONSUMER_SECRET || '';
-const WP_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://www.tecnophone.co';
+const WP_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://wp.tecnophone.co';
 
 if (!APP_ID || !ADMIN_KEY) {
   console.error('❌ Missing NEXT_PUBLIC_ALGOLIA_APP_ID or ALGOLIA_ADMIN_KEY in .env.local');

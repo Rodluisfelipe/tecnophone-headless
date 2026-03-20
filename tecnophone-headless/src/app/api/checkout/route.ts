@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { rateLimit } from '@/lib/rate-limit';
 import { isPositiveInt, isValidEmail, stripHtml, truncate } from '@/lib/validation';
 
-const WP_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://www.tecnophone.co';
+const WP_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://wp.tecnophone.co';
 const CK = process.env.WC_CONSUMER_KEY;
 const CS = process.env.WC_CONSUMER_SECRET;
 const STORE_API = `${WP_URL}/wp-json/wc/store/v1`;

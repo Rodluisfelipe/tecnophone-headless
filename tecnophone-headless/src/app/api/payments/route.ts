@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
 
     // ── Verify transaction_amount against WooCommerce order total (MANDATORY) ──
     {
-      const WP_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://www.tecnophone.co';
+      const WP_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://wp.tecnophone.co';
       const CK = process.env.WC_CONSUMER_KEY;
       const CS = process.env.WC_CONSUMER_SECRET;
       if (!CK || !CS) {
@@ -176,7 +176,7 @@ async function updateWCOrderStatus(
 ) {
   if (!Number.isInteger(orderId) || orderId <= 0) return;
 
-  const WP_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://www.tecnophone.co';
+  const WP_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://wp.tecnophone.co';
   const CK = process.env.WC_CONSUMER_KEY;
   const CS = process.env.WC_CONSUMER_SECRET;
 

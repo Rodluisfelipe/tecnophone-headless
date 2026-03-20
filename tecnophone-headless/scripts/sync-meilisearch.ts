@@ -11,7 +11,7 @@
 import { config } from 'dotenv';
 config({ path: '.env.local' });
 
-const GRAPHQL_URL = process.env.NEXT_PUBLIC_GRAPHQL_URL || 'https://www.tecnophone.co/graphql';
+const GRAPHQL_URL = process.env.NEXT_PUBLIC_GRAPHQL_URL || 'https://wp.tecnophone.co/graphql';
 const MEILI_HOST = process.env.MEILISEARCH_HOST || 'http://127.0.0.1:7700';
 const MEILI_KEY = process.env.MEILISEARCH_ADMIN_KEY || '';
 const INDEX = 'products';
@@ -58,7 +58,7 @@ const SYNC_QUERY = `
 // ── Brands query (WC REST API via GraphQL isn't available, use REST) ──
 const WC_KEY = process.env.WC_CONSUMER_KEY || '';
 const WC_SECRET = process.env.WC_CONSUMER_SECRET || '';
-const WP_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://www.tecnophone.co';
+const WP_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://wp.tecnophone.co';
 
 interface GQLNode {
   databaseId: number;

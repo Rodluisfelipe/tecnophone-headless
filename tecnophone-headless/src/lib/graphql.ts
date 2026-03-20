@@ -1,6 +1,6 @@
 const GRAPHQL_URL =
   process.env.NEXT_PUBLIC_GRAPHQL_URL ||
-  `${process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://www.tecnophone.co'}/graphql`;
+  `${process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://wp.tecnophone.co'}/graphql`;
 
 export interface GraphQLResponse<T> {
   data: T;

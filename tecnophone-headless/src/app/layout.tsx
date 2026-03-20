@@ -88,8 +88,8 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" type="image/png" href="/favicon.png" />
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-        <link rel="preconnect" href="https://www.tecnophone.co" />
-        <link rel="dns-prefetch" href="https://www.tecnophone.co" />
+        <link rel="preconnect" href="https://wp.tecnophone.co" />
+        <link rel="dns-prefetch" href="https://wp.tecnophone.co" />
       </head>
       <body className="min-h-screen flex flex-col">
         <a
