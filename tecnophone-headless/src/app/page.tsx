@@ -226,6 +226,23 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* ===== DIAN FACTURA BANNER ===== */}
+      <div className="bg-surface-50 border-b border-surface-200">
+        {/* Mobile */}
+        <div className="px-4 py-2 flex items-center justify-center gap-2.5 lg:hidden">
+          <span className="text-[11px] font-semibold text-gray-600">Todos nuestros productos son facturados electrónicamente</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/icons/dian-logo.png" alt="DIAN" width={60} height={10} className="h-3 w-auto shrink-0" />
+        </div>
+        {/* Desktop */}
+        <div className="hidden lg:flex items-center justify-center gap-3 py-2.5">
+          <span className="text-xs font-semibold text-gray-500">Todos nuestros productos incluyen factura electrónica</span>
+          <span className="text-gray-300">|</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/icons/dian-logo.png" alt="DIAN" width={80} height={14} className="h-3.5 w-auto" />
+        </div>
+      </div>
+
       {/* ===== CATEGORIES ===== */}
       <section className="bg-white border-b border-surface-200">
         <div className="px-4 sm:px-6 lg:px-8 max-w-[1550px] mx-auto">

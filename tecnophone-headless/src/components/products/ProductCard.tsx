@@ -125,31 +125,10 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
 
       {/* Info */}
       <div className="p-4 pb-5 flex flex-col flex-1">
-        {/* Brand logo */}
-        <div className="mb-2 h-4">
-          {product.brand && (
-            <>
-              {product.brand.image ? (
-                <Image
-                  src={product.brand.image.src}
-                  alt={product.brand.name}
-                  width={64}
-                  height={16}
-                  className="h-4 w-auto object-contain opacity-60 grayscale"
-                />
-              ) : (
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                  {product.brand.name}
-                </span>
-              )}
-            </>
-          )}
-        </div>
-
         {/* Category tag */}
         <div className="mb-2 h-5">
           {displayCategory && (
-              <span className="inline-block text-[11px] font-bold text-primary-600 bg-primary-50 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+            <span className="inline-block text-[11px] font-bold text-primary-600 bg-primary-50 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
               {displayCategory.name}
             </span>
           )}
