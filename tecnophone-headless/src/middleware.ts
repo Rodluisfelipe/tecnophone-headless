@@ -16,6 +16,7 @@ const VALID_PREFIXES = [
   '/checkout',
   '/buscar',
   '/contacto',
+  '/empresas',
   '/blog',
   '/api/',
   '/_next/',

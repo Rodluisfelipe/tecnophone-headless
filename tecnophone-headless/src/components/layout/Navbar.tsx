@@ -15,6 +15,7 @@ import {
   User,
   Truck,
   Shield,
+  Building2,
 } from 'lucide-react';
 import { useCartStore } from '@/store/cart';
 import { cn } from '@/lib/utils';
@@ -35,7 +36,6 @@ const categories = [
 const navLinks = [
   { href: '/', label: 'Inicio' },
   { href: '/productos', label: 'Productos', hasDropdown: true },
-  { href: '/contacto', label: 'Nosotros' },
 ];
 
 export default function Navbar() {
@@ -232,10 +232,18 @@ export default function Navbar() {
                   <Zap className="w-3.5 h-3.5" />
                   Ofertas
                 </Link>
+
+                <Link
+                  href="/empresas"
+                  className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-primary-600 hover:text-primary-700 rounded-lg hover:bg-primary-50 transition-all"
+                >
+                  <Building2 className="w-3.5 h-3.5" />
+                  ¿Eres empresa?
+                </Link>
               </div>
 
               {/* Inline search bar (desktop) */}
-              <div className="hidden md:block flex-1 max-w-sm lg:max-w-md">
+              <div className="hidden md:block flex-1 max-w-md lg:max-w-xl">
                 <InstantSearch ref={searchRef} />
               </div>
 
@@ -260,14 +268,6 @@ export default function Navbar() {
                   <Shield className="w-4 h-4" />
                   <span>Garantía</span>
                 </a>
-
-                <Link
-                  href="/contacto"
-                  className="p-2.5 rounded-full text-gray-500 hover:text-primary-600 hover:bg-gray-100 transition-all"
-                  aria-label="Mi cuenta"
-                >
-                  <User className="w-5 h-5" />
-                </Link>
 
                 <button
                   onClick={openCart}
