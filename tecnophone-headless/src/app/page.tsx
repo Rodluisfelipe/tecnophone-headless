@@ -19,6 +19,7 @@ import {
   ShoppingCart,
   Clock,
   Flame,
+  Building2,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { getProducts, getBanners, getCategories, getBrands, formatPrice, calculateDiscount } from '@/lib/woocommerce';
@@ -177,7 +178,6 @@ export default async function HomePage() {
           <div className="grid grid-cols-5 gap-1 py-3 lg:hidden">
             {[
               { icon: Truck, text: 'Envío nacional' },
-              { icon: Shield, text: 'Garantía' },
               { icon: CreditCard, text: 'Pago seguro' },
               { icon: Package, text: '1-3 días' },
             ].map((feat) => {
@@ -198,6 +198,13 @@ export default async function HomePage() {
               <MessageCircle className="w-4 h-4" />
               <span className="text-[10px] font-bold leading-tight">Garantía</span>
             </a>
+            <Link
+              href="/empresas"
+              className="flex flex-col items-center gap-0.5 text-center text-primary-600"
+            >
+              <Building2 className="w-4 h-4" />
+              <span className="text-[10px] font-bold leading-tight">¿Empresa?</span>
+            </Link>
           </div>
           {/* Desktop: grid with dividers */}
           <div className="hidden lg:grid grid-cols-4 divide-x divide-surface-200">
