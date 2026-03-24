@@ -14,6 +14,7 @@ import {
   Zap,
   User,
   Truck,
+  Shield,
 } from 'lucide-react';
 import { useCartStore } from '@/store/cart';
 import { cn } from '@/lib/utils';
@@ -248,6 +249,17 @@ export default function Navbar() {
                   <Truck className="w-4 h-4" />
                   <span>Seguir envío</span>
                 </button>
+
+                <a
+                  href="https://wa.me/573132294533?text=Hola%2C%20quiero%20gestionar%20la%20garant%C3%ADa%20de%20mi%20producto"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-full text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 transition-all text-xs font-semibold"
+                  aria-label="Gestionar garantía"
+                >
+                  <Shield className="w-4 h-4" />
+                  <span>Garantía</span>
+                </a>
 
                 <Link
                   href="/contacto"

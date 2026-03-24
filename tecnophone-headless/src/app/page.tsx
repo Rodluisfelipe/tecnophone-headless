@@ -173,8 +173,8 @@ export default async function HomePage() {
       {/* ===== TRUST FEATURES BAR ===== */}
       <section className="bg-white lg:bg-surface-100 border-b border-surface-200">
         <div className="px-4 sm:px-6 lg:px-8 max-w-[1550px] mx-auto">
-          {/* Mobile: compact horizontal scroll */}
-          <div className="flex items-center gap-4 py-3 overflow-x-auto scrollbar-hide lg:hidden" style={{ scrollbarWidth: 'none' }}>
+          {/* Mobile: compact grid */}
+          <div className="grid grid-cols-5 gap-1 py-3 lg:hidden">
             {[
               { icon: Truck, text: 'Envío nacional' },
               { icon: Shield, text: 'Garantía' },
@@ -183,12 +183,21 @@ export default async function HomePage() {
             ].map((feat) => {
               const Icon = feat.icon;
               return (
-                <div key={feat.text} className="flex items-center gap-1.5 flex-shrink-0">
+                <div key={feat.text} className="flex flex-col items-center gap-0.5 text-center">
                   <Icon className="w-4 h-4 text-primary-600" />
-                  <span className="text-gray-600 text-[11px] font-semibold whitespace-nowrap">{feat.text}</span>
+                  <span className="text-gray-600 text-[10px] font-semibold leading-tight">{feat.text}</span>
                 </div>
               );
             })}
+            <a
+              href="https://wa.me/573132294533?text=Hola%2C%20quiero%20gestionar%20la%20garant%C3%ADa%20de%20mi%20producto"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center gap-0.5 text-center text-emerald-700"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span className="text-[10px] font-bold leading-tight">Garantía</span>
+            </a>
           </div>
           {/* Desktop: grid with dividers */}
           <div className="hidden lg:grid grid-cols-4 divide-x divide-surface-200">
