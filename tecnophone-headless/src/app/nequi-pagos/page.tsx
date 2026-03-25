@@ -69,8 +69,42 @@ export default async function NequiPagosPage() {
   const productRes = await getProducts({ per_page: 8, orderby: 'popularity', order: 'desc' });
   const products = productRes.products;
 
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: '¿Necesito tener tarjeta de crédito para pagar con Nequi?',
+        acceptedAnswer: { '@type': 'Answer', text: 'No. Nequi funciona con el saldo de tu cuenta o con tu cuenta de ahorros Bancolombia vinculada. No necesitas tarjeta de crédito.' },
+      },
+      {
+        '@type': 'Question',
+        name: '¿Hay un límite de monto para pagar con Nequi?',
+        acceptedAnswer: { '@type': 'Answer', text: 'Nequi tiene límites de transacción según tu nivel de cuenta. Generalmente puedes hacer pagos de hasta $2.000.000 por transacción. Para montos mayores, puedes usar transferencia bancaria.' },
+      },
+      {
+        '@type': 'Question',
+        name: '¿El pago con Nequi es inmediato?',
+        acceptedAnswer: { '@type': 'Answer', text: 'Sí. Una vez confirmas el pago desde tu app Nequi, la transacción se procesa al instante y tu pedido entra en preparación.' },
+      },
+      {
+        '@type': 'Question',
+        name: '¿Puedo pagar a cuotas con Nequi?',
+        acceptedAnswer: { '@type': 'Answer', text: 'Nequi procesa pagos de contado con el saldo disponible. Si necesitas pagar a cuotas, puedes usar tarjeta de crédito a través de MercadoPago (hasta 12 cuotas).' },
+      },
+      {
+        '@type': 'Question',
+        name: '¿Cómo solicito un reembolso si pagué con Nequi?',
+        acceptedAnswer: { '@type': 'Answer', text: 'Si necesitas un reembolso, el dinero se devuelve a tu cuenta Nequi en 3-5 días hábiles. Contáctanos por WhatsApp para gestionar la devolución.' },
+      },
+    ],
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50/30 to-white">
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <div className="min-h-screen bg-gradient-to-b from-purple-50/30 to-white">
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-white to-indigo-50" />
@@ -341,5 +375,6 @@ export default async function NequiPagosPage() {
         </div>
       </section>
     </div>
+    </>
   );
 }

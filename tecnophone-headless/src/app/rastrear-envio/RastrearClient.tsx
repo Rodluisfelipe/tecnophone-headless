@@ -43,6 +43,33 @@ export default function RastrearEnvioClient() {
   const [result, setResult] = useState<TrackingResult | null>(null);
   const [error, setError] = useState('');
 
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: '¿Cuánto tarda un envío de TecnoPhone?',
+        acceptedAnswer: { '@type': 'Answer', text: 'Los envíos a ciudades principales tardan 1-2 días hábiles. A municipios intermedios 2-3 días. Zonas rurales pueden tardar hasta 5 días hábiles.' },
+      },
+      {
+        '@type': 'Question',
+        name: '¿Dónde encuentro mi número de guía de TecnoPhone?',
+        acceptedAnswer: { '@type': 'Answer', text: 'Tu número de guía se envía por correo electrónico y WhatsApp una vez que el pedido es despachado. También puedes consultarlo con nuestro equipo de soporte.' },
+      },
+      {
+        '@type': 'Question',
+        name: '¿Qué pasa si mi pedido de TecnoPhone no llega?',
+        acceptedAnswer: { '@type': 'Answer', text: 'Si tu pedido no llega en el tiempo estimado, contáctanos por WhatsApp al +57 313 229 4533. Rastreamos tu paquete y te damos una solución inmediata.' },
+      },
+      {
+        '@type': 'Question',
+        name: '¿Puedo cambiar la dirección de entrega?',
+        acceptedAnswer: { '@type': 'Answer', text: 'Si el pedido aún no ha sido despachado, sí podemos actualizar la dirección. Contáctanos lo antes posible por WhatsApp.' },
+      },
+    ],
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = guia.trim();
@@ -83,7 +110,9 @@ export default function RastrearEnvioClient() {
     : '';
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-surface-50 to-white">
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <div className="min-h-screen bg-gradient-to-b from-surface-50 to-white">
       {/* Hero + Search */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-indigo-50" />
@@ -316,5 +345,6 @@ export default function RastrearEnvioClient() {
         </div>
       </section>
     </div>
+    </>
   );
 }

@@ -30,6 +30,8 @@ const VALID_PREFIXES = [
   '/favicon',
   '/robots.txt',
   '/sitemap.xml',
+  '/llms.txt',
+  '/llms-full.txt',
 ];
 
 // Static file extensions — never redirect these

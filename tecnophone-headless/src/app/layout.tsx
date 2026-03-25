@@ -91,6 +91,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
         <link rel="preconnect" href="https://wp.tecnophone.co" />
         <link rel="dns-prefetch" href="https://wp.tecnophone.co" />
+        <link rel="alternate" type="text/plain" href="/llms.txt" title="LLM Information" />
       </head>
       <body className="min-h-screen flex flex-col">
         <a
