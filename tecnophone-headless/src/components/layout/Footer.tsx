@@ -18,6 +18,12 @@ const navLinks = [
   { href: '/categoria/portatiles-2', label: 'Portátiles' },
   { href: '/categoria/celulares', label: 'Celulares' },
   { href: '/categoria/ofertas', label: 'Ofertas' },
+  { href: '/empresas', label: 'Empresas' },
+  { href: '/dolar-hoy', label: 'Dólar Hoy' },
+  { href: '/salario-minimo', label: 'Salario Mínimo 2026' },
+  { href: '/dia-de-la-madre', label: 'Día de la Madre' },
+  { href: '/rastrear-envio', label: 'Rastrear Envío' },
+  { href: '/nequi-pagos', label: 'Pagar con Nequi' },
   { href: '/blog', label: 'Blog' },
 ];
 
@@ -36,7 +42,7 @@ const socials = [
 
 const contactInfo = [
   { icon: Phone, text: '+57 313 229 4533', href: 'tel:+573132294533' },
-  { icon: Mail, text: 'info@tecnophone.co', href: 'mailto:info@tecnophone.co' },
+  { icon: Mail, text: 'ventas@tecnophone.co', href: 'mailto:ventas@tecnophone.co' },
   { icon: MapPin, text: 'Chía, Cundinamarca, Colombia' },
   { icon: Clock, text: 'Lun - Sáb: 9:00 AM - 7:00 PM' },
 ];

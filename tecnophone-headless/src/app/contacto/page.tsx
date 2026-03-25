@@ -61,10 +61,10 @@ export default function ContactoPage() {
                 <div>
                   <h3 className="font-semibold text-gray-900">Correo</h3>
                   <a
-                    href="mailto:info@tecnophone.co"
+                    href="mailto:ventas@tecnophone.co"
                     className="text-sm text-surface-700 hover:text-primary-600 transition-colors"
                   >
-                    info@tecnophone.co
+                    ventas@tecnophone.co
                   </a>
                 </div>
               </div>
