@@ -104,9 +104,11 @@ export async function POST(request: NextRequest) {
     const expectedBuf = Buffer.from(expectedSig, 'utf8');
     const receivedBuf = Buffer.from(signature, 'utf8');
     if (expectedBuf.length !== receivedBuf.length || !timingSafeEqual(expectedBuf, receivedBuf)) {
+      console.error(`[WC Webhook] Signature mismatch — secret len=${WEBHOOK_SECRET.length}, received sig len=${signature.length}, expected sig len=${expectedSig.length}`);
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
   } else {
+    console.error('[WC Webhook] Missing x-wc-webhook-signature header');
     return NextResponse.json({ error: 'Missing signature' }, { status: 401 });
   }
 
