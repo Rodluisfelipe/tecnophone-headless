@@ -22,7 +22,7 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const category = await getCategory(params.slug);
+  const category = await getCategory(decodeURIComponent(params.slug));
   if (!category) return { title: 'Categoría no encontrada' };
 
   return {
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function CategoriaPage({ params }: Props) {
-  const category = await getCategory(params.slug);
+  const category = await getCategory(decodeURIComponent(params.slug));
   if (!category) notFound();
 
   const { products, total } = await getProducts({

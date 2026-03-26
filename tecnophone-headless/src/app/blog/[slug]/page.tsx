@@ -22,7 +22,7 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const post = await getPost(params.slug);
+  const post = await getPost(decodeURIComponent(params.slug));
   if (!post) return { title: 'Artículo no encontrado' };
 
   return {
@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function BlogPostPage({ params }: Props) {
-  const post = await getPost(params.slug);
+  const post = await getPost(decodeURIComponent(params.slug));
   if (!post) notFound();
 
   const featuredImage = post._embedded?.['wp:featuredmedia']?.[0]?.source_url;

@@ -21,7 +21,7 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const product = await getProduct(params.slug);
+  const product = await getProduct(decodeURIComponent(params.slug));
   if (!product) return { title: 'Producto no encontrado' };
 
   return {
@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProductoPage({ params }: Props) {
-  const product = await getProduct(params.slug);
+  const product = await getProduct(decodeURIComponent(params.slug));
   if (!product) notFound();
 
   // Fetch related products in parallel — no sequential waterfall
