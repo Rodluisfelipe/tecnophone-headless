@@ -49,11 +49,14 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_SITE_URL || 'https://www.tecnophone.co'
   ),
   title: {
-    default: 'TecnoPhone - Tecnología al Mejor Precio | Portátiles, Celulares, Accesorios',
-    template: '%s | TecnoPhone',
+    default: 'TecnoPhone | Portátiles, Celulares y Accesorios en Colombia',
+    template: '%s | TecnoPhone Colombia',
   },
   description:
-    'Tienda de tecnología en Colombia. Portátiles, celulares, tablets, monitores, impresoras y accesorios de las mejores marcas. Envíos a todo el país.',
+    'Tienda de tecnología en Colombia. Portátiles, celulares, tablets, monitores, impresoras y accesorios de las mejores marcas al mejor precio. Envíos a todo el país.',
+  alternates: {
+    canonical: 'https://www.tecnophone.co',
+  },
   keywords: [
     'tecnología Colombia',
     'portátiles',
@@ -81,7 +84,6 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="theme-color" content="#2563eb" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />

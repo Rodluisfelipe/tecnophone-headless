@@ -358,11 +358,11 @@ export default function HeroSlider({ banners, featuredProducts = [] }: HeroSlide
                           </div>
 
                           <div className="hero-animate hero-animate-delay-2">
-                            <h2 className="text-2xl sm:text-3xl lg:text-[2.6rem] lg:leading-[1.08] font-black text-white font-display tracking-tight">
+                            <p className="text-2xl sm:text-3xl lg:text-[2.6rem] lg:leading-[1.08] font-black text-white font-display tracking-tight" role="heading" aria-level={2}>
                               {titleWithoutHighlight}
                               {titleWithoutHighlight && <br />}
                               <span className="text-yellow-300">{slide.highlightText}</span>
-                            </h2>
+                            </p>
                           </div>
 
                           <div className="hero-animate hero-animate-delay-3">
@@ -474,7 +474,7 @@ export default function HeroSlider({ banners, featuredProducts = [] }: HeroSlide
 
                           {/* Title */}
                           <div className="hero-animate hero-animate-delay-2">
-                            <h2 className="text-2xl sm:text-3xl lg:text-[2.6rem] lg:leading-[1.08] font-black text-white font-display tracking-tight">
+                            <p className="text-2xl sm:text-3xl lg:text-[2.6rem] lg:leading-[1.08] font-black text-white font-display tracking-tight" role="heading" aria-level={2}>
                               {slide.highlightText ? (
                                 <>
                                   {titleWithoutHighlight}
@@ -487,7 +487,7 @@ export default function HeroSlider({ banners, featuredProducts = [] }: HeroSlide
                               ) : (
                                 slide.title
                               )}
-                            </h2>
+                            </p>
                           </div>
 
                           {/* Subtitle — 2 lines max */}

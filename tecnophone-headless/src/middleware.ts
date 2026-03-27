@@ -43,6 +43,14 @@ const STATIC_EXT = /\.(js|css|png|jpg|jpeg|gif|svg|ico|webp|avif|woff|woff2|ttf|
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const host = request.headers.get('host') || '';
+
+  // Enforce www subdomain (non-www → www) for production
+  if (host === 'tecnophone.co') {
+    const url = request.nextUrl.clone();
+    url.host = 'www.tecnophone.co';
+    return NextResponse.redirect(url, 301);
+  }
 
   // Never redirect static assets
   if (STATIC_EXT.test(pathname)) return NextResponse.next();

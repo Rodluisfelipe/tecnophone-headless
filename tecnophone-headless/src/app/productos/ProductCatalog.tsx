@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { SlidersHorizontal, Grid3X3, LayoutList, ChevronDown, ChevronUp, X, Filter, DollarSign, Tag, Cpu, Check } from 'lucide-react';
+import { SlidersHorizontal, Grid3X3, LayoutList, ChevronDown, ChevronUp, X, Filter, DollarSign, Tag, Cpu, Check, Store } from 'lucide-react';
 import ProductCard from '@/components/products/ProductCard';
 import { WCProduct } from '@/types/woocommerce';
 import { cn } from '@/lib/utils';
@@ -146,8 +146,9 @@ export default function ProductCatalog({
   }, [searchParams]);
 
   const hasAttrFilters = Object.keys(activeAttrs).length > 0;
-  const useAlgolia = hasAttrFilters;
-  const isInitialState = page === 1 && sort === 'date-desc' && !onSale && !minPrice && !maxPrice && !hasAttrFilters;
+  const activeBrand = searchParams.get('brand') || '';
+  const hasAnyFilter = hasAttrFilters || onSale || !!minPrice || !!maxPrice || !!activeBrand;
+  const isInitialState = page === 1 && sort === 'date-desc' && !hasAnyFilter;
 
   const fetchProducts = useCallback(async () => {
     if (isInitialState) {
@@ -164,56 +165,30 @@ export default function ProductCatalog({
 
     setLoading(true);
 
-    if (useAlgolia) {
-      const params = new URLSearchParams();
-      params.set('page', String(Math.max(0, page - 1)));
-      params.set('per_page', '24');
-      if (onSale) params.set('on_sale', 'true');
-      if (minPrice) params.set('min_price', minPrice);
-      if (maxPrice) params.set('max_price', maxPrice);
-      for (const [key, value] of Object.entries(activeAttrs)) {
-        params.set(key, value);
-      }
-      try {
-        const res = await fetch(`/api/products/browse?${params.toString()}`);
-        const data = await res.json();
-        setProducts((data.products || []).map(mapAlgoliaHitToProduct));
-        setTotalPages(data.totalPages || 0);
-        setTotal(data.total || 0);
-        if (data.facets) setFacets(data.facets);
-      } catch {
-        setProducts([]);
-      }
-    } else {
-      const [orderby, order] = sort.split('-');
-      const params = new URLSearchParams();
-      params.set('page', String(page));
-      params.set('per_page', '12');
-      params.set('orderby', orderby);
-      params.set('order', order);
-      if (onSale) params.set('on_sale', 'true');
-      if (minPrice) params.set('min_price', minPrice);
-      if (maxPrice) params.set('max_price', maxPrice);
-
-      try {
-        const res = await fetch(`/api/products?${params.toString()}`);
-        const data = await res.json();
-        setProducts(data.products);
-        setTotalPages(data.totalPages);
-        setTotal(data.total);
-      } catch {
-        setProducts([]);
-      }
-
-      try {
-        const fRes = await fetch('/api/products/browse?per_page=0');
-        const fData = await fRes.json();
-        if (fData.facets) setFacets(fData.facets);
-      } catch { /* non-critical */ }
+    // Always use Algolia for filtering — it has price_numeric, brand_name, and all attr_*
+    const params = new URLSearchParams();
+    params.set('page', String(Math.max(0, page - 1)));
+    params.set('per_page', '24');
+    if (onSale) params.set('on_sale', 'true');
+    if (minPrice) params.set('min_price', minPrice);
+    if (maxPrice) params.set('max_price', maxPrice);
+    if (activeBrand) params.set('brand', activeBrand);
+    for (const [key, value] of Object.entries(activeAttrs)) {
+      params.set(key, value);
+    }
+    try {
+      const res = await fetch(`/api/products/browse?${params.toString()}`);
+      const data = await res.json();
+      setProducts((data.products || []).map(mapAlgoliaHitToProduct));
+      setTotalPages(data.totalPages || 0);
+      setTotal(data.total || 0);
+      if (data.facets) setFacets(data.facets);
+    } catch {
+      setProducts([]);
     }
 
     setLoading(false);
-  }, [page, sort, onSale, minPrice, maxPrice, isInitialState, initialProducts, initialTotal, initialTotalPages, useAlgolia, activeAttrs]);
+  }, [page, sort, onSale, minPrice, maxPrice, isInitialState, initialProducts, initialTotal, initialTotalPages, activeAttrs, activeBrand]);
 
   useEffect(() => {
     fetchProducts();
@@ -248,7 +223,7 @@ export default function ProductCatalog({
     router.push(`${pathname}?${params.toString()}`);
   };
 
-  const activeFiltersCount = (onSale ? 1 : 0) + (minPrice || maxPrice ? 1 : 0) + Object.keys(activeAttrs).length;
+  const activeFiltersCount = (onSale ? 1 : 0) + (minPrice || maxPrice ? 1 : 0) + Object.keys(activeAttrs).length + (activeBrand ? 1 : 0);
 
   const clearAllFilters = () => {
     const params = new URLSearchParams();
@@ -256,6 +231,26 @@ export default function ProductCatalog({
     if (sort !== 'date-desc') params.set('sort', sort);
     router.push(`${pathname}?${params.toString()}`);
   };
+
+  /** Brand facets with product counts — sorted by count descending */
+  const brandFacets = useMemo(() => {
+    const brands = facets['brand_name'];
+    if (!brands) return [];
+    return Object.entries(brands)
+      .filter(([name]) => name.trim() !== '')
+      .sort(([, a], [, b]) => b - a);
+  }, [facets]);
+
+  /** Map brand_name -> brand_image from products (built once from current product set) */
+  const brandImages = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const p of products) {
+      if (p.brand?.name && p.brand.image?.src) {
+        map[p.brand.name] = p.brand.image.src;
+      }
+    }
+    return map;
+  }, [products]);
 
   const attrFacets = useMemo(() => {
     return Object.entries(facets)
@@ -317,6 +312,12 @@ export default function ProductCatalog({
                 <button onClick={() => updateParam(key, '')} className="hover:bg-indigo-100 rounded-full p-0.5 transition-colors"><X className="w-3 h-3" /></button>
               </span>
             ))}
+            {activeBrand && (
+              <span className="inline-flex items-center gap-1 bg-violet-50 text-violet-700 pl-2.5 pr-1.5 py-1 rounded-full text-[11px] font-medium border border-violet-200">
+                {activeBrand}
+                <button onClick={() => updateParam('brand', '')} className="hover:bg-violet-100 rounded-full p-0.5 transition-colors"><X className="w-3 h-3" /></button>
+              </span>
+            )}
           </div>
         </div>
       )}
@@ -335,6 +336,44 @@ export default function ProductCatalog({
                 <span className="text-[11px] text-surface-500 font-medium tabular-nums group-hover:text-gray-600">{count}</span>
               </button>
             ))}
+          </div>
+        </FilterSection>
+      )}
+
+      {/* Brands */}
+      {brandFacets.length > 0 && (
+        <FilterSection title="Marca" icon={<Store className="w-3.5 h-3.5 text-violet-500" />}>
+          <div className="space-y-0.5 max-h-56 overflow-y-auto pr-1 scrollbar-thin">
+            {brandFacets.map(([name, count]) => {
+              const isActive = activeBrand === name;
+              const logo = brandImages[name];
+              return (
+                <button
+                  key={name}
+                  onClick={() => updateParam('brand', isActive ? '' : name)}
+                  className={cn(
+                    'flex items-center justify-between w-full px-2 py-1.5 rounded-lg text-sm transition-colors',
+                    isActive
+                      ? 'bg-violet-50 text-violet-700 font-medium'
+                      : 'text-gray-700 hover:bg-surface-50 hover:text-gray-900'
+                  )}
+                >
+                  <span className="flex items-center gap-2 min-w-0">
+                    <span className={cn(
+                      'w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors',
+                      isActive ? 'border-violet-500 bg-violet-500' : 'border-surface-300'
+                    )}>
+                      {isActive && <Check className="w-3 h-3 text-white" />}
+                    </span>
+                    {logo ? (
+                      <img src={logo} alt={name} className="w-5 h-5 object-contain rounded flex-shrink-0" />
+                    ) : null}
+                    <span className="truncate">{name}</span>
+                  </span>
+                  <span className="text-[11px] text-surface-500 font-medium tabular-nums ml-1">{count}</span>
+                </button>
+              );
+            })}
           </div>
         </FilterSection>
       )}
@@ -566,6 +605,12 @@ export default function ProductCatalog({
                   <button onClick={() => updateParam(key, '')} className="p-0.5"><X className="w-2.5 h-2.5" /></button>
                 </span>
               ))}
+              {activeBrand && (
+                <span className="inline-flex items-center gap-1 bg-violet-50 text-violet-700 pl-2 pr-1 py-0.5 rounded-full text-[11px] font-medium border border-violet-200">
+                  {activeBrand}
+                  <button onClick={() => updateParam('brand', '')} className="p-0.5"><X className="w-2.5 h-2.5" /></button>
+                </span>
+              )}
               <button onClick={clearAllFilters} className="text-[11px] text-red-500 font-medium hover:underline ml-1">
                 Limpiar
               </button>

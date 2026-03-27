@@ -29,6 +29,9 @@ export async function GET(request: NextRequest) {
   const facetFilters: string[] = [];
   if (onSale) facetFilters.push('on_sale:true');
 
+  const brand = sp.get('brand') || '';
+  if (brand) facetFilters.push(`brand_name:${brand}`);
+
   sp.forEach((value, key) => {
     if (key.startsWith('attr_') && value) {
       facetFilters.push(`${key}:${value}`);

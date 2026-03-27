@@ -166,7 +166,16 @@ export default async function HomePage() {
       />
 
       {/* Visually hidden H1 for SEO — page has visual hero slider instead */}
-      <h1 className="sr-only">TecnoPhone — Tienda de Tecnología en Colombia: Portátiles, Celulares y Accesorios</h1>
+      <h1 className="sr-only">TecnoPhone — Portátiles, Celulares y Accesorios de Tecnología en Colombia al Mejor Precio</h1>
+
+      {/* SEO intro text — visible but compact */}
+      <div className="bg-white border-b border-surface-200">
+        <div className="px-4 sm:px-6 lg:px-8 max-w-[1550px] mx-auto py-3 lg:py-4">
+          <p className="text-xs lg:text-sm text-surface-600 leading-relaxed max-w-3xl">
+            Bienvenido a <strong>TecnoPhone</strong>, tu tienda de tecnología en Colombia. Encuentra <strong>portátiles</strong>, <strong>celulares</strong>, monitores, auriculares y <strong>accesorios</strong> de las mejores marcas al mejor precio con envío a todo el país.
+          </p>
+        </div>
+      </div>
 
       {/* ===== HERO SLIDER ===== */}
       <HeroSlider banners={(() => { const hero = banners.filter(b => !b.title.startsWith('SBANNER') && !b.title.startsWith('LBANNER') && !b.title.startsWith('LARGEBANNER')); return hero.length > 0 ? hero : undefined; })()} featuredProducts={latestProducts.length > 0 ? latestProducts : undefined} />
@@ -342,7 +351,7 @@ export default async function HomePage() {
                 <span className="inline-block bg-primary-600 text-white text-[10px] lg:text-xs font-bold px-2.5 lg:px-3 py-1 rounded mb-1.5 lg:mb-2 uppercase tracking-wider">
                   Nuevos
                 </span>
-                <h2 className="text-xl lg:text-3xl font-extrabold text-gray-900">Recién Llegados</h2>
+                <h2 className="text-xl lg:text-3xl font-extrabold text-gray-900">Productos Recién Llegados</h2>
               </div>
               <Link
                 href="/productos"
@@ -549,7 +558,7 @@ export default async function HomePage() {
                 <span className="inline-flex items-center gap-1.5 bg-red-600 text-white text-[10px] lg:text-xs font-bold px-2.5 lg:px-3 py-1 rounded mb-1.5 lg:mb-2 uppercase tracking-wider">
                   <Zap className="w-3 h-3" /> Hot Sale
                 </span>
-                <h2 className="text-xl lg:text-3xl font-extrabold text-gray-900">Ofertas Imperdibles</h2>
+                <h2 className="text-xl lg:text-3xl font-extrabold text-gray-900">Descuentos y Ofertas</h2>
               </div>
               <Link
                 href="/productos?on_sale=true"

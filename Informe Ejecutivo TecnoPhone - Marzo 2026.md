@@ -1,196 +1,211 @@
-# Informe Ejecutivo — Proyecto TecnoPhone E-Commerce
+# Informe de Gestión — Departamento E-Commerce TecnoPhone
 ### Presentado a: Dirección General
-### Fecha: 26 de marzo de 2026
+### Período: Enero — Marzo 2026
+### Fecha de entrega: 27 de marzo de 2026
 ### Sitio: www.tecnophone.co
 
 ---
 
-## 1. ¿QUÉ SE HIZO?
+## 1. TRABAJO REALIZADO — ENERO A MARZO 2026
 
-La tienda en línea de TecnoPhone fue **completamente reconstruida desde cero** usando tecnología de última generación. Se migró de una tienda WordPress/WooCommerce tradicional (lenta, insegura, difícil de personalizar) a una **tienda headless moderna** que separa la vitrina visible al cliente (el "frente") del sistema de gestión de productos (el "atrás").
+### 1.1 Reconstrucción completa de la tienda en línea
 
-### Analogía simple:
-> Antes era como tener una tienda física donde el mostrador, la bodega y la caja registradora estaban todos pegados en un solo mueble viejo. Ahora tenemos un **mostrador moderno y rápido** (la web que ve el cliente) conectado a una **bodega organizada** (WordPress/WooCommerce donde se gestionan productos) — cada parte funciona de forma independiente y se puede mejorar sin afectar la otra.
+Se recibió una tienda WordPress/WooCommerce tradicional (desarrollada por Narotech) y se reconstruyó completamente como tienda headless, separando el frontend público (Next.js 14, desplegado en Vercel) del backend de gestión de productos (WordPress/WooCommerce existente).
+
+**Stack tecnológico implementado:**
+- Frontend: Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS
+- Backend: WordPress + WooCommerce (existente) conectado vía WPGraphQL
+- Hosting frontend: Vercel (CDN global en 70+ países)
+- Pagos: MercadoPago SDK (Bricks)
+- Búsqueda: Algolia
+- AI: Groq (Llama)
+- Imágenes: Sharp (optimización AVIF/WebP)
+
+### 1.2 Páginas construidas (23 en total)
+
+| Página | Ruta | Descripción |
+|--------|------|-------------|
+| Inicio | / | Hero slider, categorías destacadas, banners promocionales, barra de confianza |
+| Catálogo de productos | /productos | Filtros por categoría, precio; ordenamiento por fecha, precio, popularidad, calificación; vista grilla/lista; paginación |
+| Detalle de producto | /producto/[slug] | Imágenes, variaciones, precio, botón agregar al carrito, descripción |
+| Categorías | /categorias | Listado general de todas las categorías |
+| Categoría individual | /categoria/[slug] | Productos filtrados por categoría |
+| Búsqueda | /buscar | Búsqueda instantánea con Algolia |
+| Checkout | /checkout | 2 pasos: información de envío (departamentos, ciudades colombianas) + pago |
+| Confirmación de compra | /checkout/gracias | Resumen del pedido después del pago |
+| Blog | /blog | Listado de artículos desde WordPress |
+| Artículo individual | /blog/[slug] | Contenido completo del artículo |
+| Contacto | /contacto | Formulario de contacto |
+| Empresas (B2B) | /empresas | Landing para clientes corporativos con formulario de cotización |
+| Dólar Hoy | /dolar-hoy | TRM oficial en tiempo real (API datos.gov.co) |
+| Salario Mínimo 2026 | /salario-minimo | Información salarial actualizada |
+| Día de la Madre | /dia-de-la-madre | Landing estacional para regalos tecnológicos |
+| Pagos Nequi | /nequi-pagos | Información sobre pago con Nequi |
+| Rastrear Envío | /rastrear-envio | Rastreo de envíos Servientrega integrado |
+| Términos y Condiciones | /terminos-condiciones | Página legal |
+| Política de Privacidad | /politica-privacidad | Ley 1581 de 2012 |
+| Política de Envíos | /politica-envios | Tiempos, costos, cobertura |
+| Derecho de Retracto | /derecho-retracto | Ley 1480 de 2011, Art. 47 |
+| llms.txt | /llms.txt | Optimización para inteligencias artificiales |
+| llms-full.txt | /llms-full.txt | Versión extendida para IAs |
 
 ---
 
-## 2. RESULTADOS TANGIBLES
+## 2. FUNCIONALIDADES IMPLEMENTADAS
 
-### Velocidad
-| Métrica | Antes (WordPress tradicional) | Ahora (Headless) |
-|---------|-------------------------------|-------------------|
-| Tiempo de carga primera visita | 4-8 segundos | **< 1.5 segundos** |
-| Navegación entre páginas | 2-4 segundos | **Instantánea** (< 0.3s) |
-| Rendimiento Google Lighthouse | ~40-60/100 | **90+/100** |
+### 2.1 Sistema de pagos
 
-### Posicionamiento en Google (SEO)
-- **23 páginas optimizadas** para buscadores con metadatos profesionales
-- **Sitemap dinámico** que se actualiza solo con cada producto nuevo
-- **Optimización para inteligencia artificial**: La tienda es reconocida por ChatGPT, Perplexity, Claude y Google Gemini. Cuando alguien pregunta "¿dónde comprar un iPhone en Colombia?", nuestra tienda puede aparecer
-- **Páginas SEO estratégicas** creadas para captar tráfico orgánico:
-  - "Dólar Hoy en Colombia" — atrae visitantes buscando la TRM oficial
-  - "Salario Mínimo 2026" — captura búsquedas populares colombianas
-  - "Día de la Madre" — landing estacional para regalos tecnológicos
-  - "Pagar con Nequi" — captura búsquedas de métodos de pago
-  - "Rastrear Envío" — servicio útil que retiene clientes en el sitio
+| Método de pago | Integración | Estado |
+|----------------|-------------|:------:|
+| Tarjeta crédito | MercadoPago Bricks SDK | ✅ Funcionando |
+| Tarjeta débito | MercadoPago Bricks SDK | ✅ Funcionando |
+| Nequi | MercadoPago | ✅ Funcionando |
+| PSE | MercadoPago | ✅ Funcionando |
+| Cuotas hasta 12 meses | MercadoPago | ✅ Funcionando |
+| Transferencia bancaria (Davivienda) | Manual con instrucciones | ✅ Funcionando |
 
-### Funcionalidades de Venta
+Todas las compras se procesan dentro de tecnophone.co. No se redirige al cliente a sitios externos.
+
+### 2.2 Funcionalidades de la tienda
+
 | Función | Estado |
-|---------|--------|
-| Catálogo de productos con filtros y búsqueda inteligente | ✅ Funcionando |
-| Carrito de compras persistente (no se pierde al cerrar el navegador) | ✅ Funcionando |
-| Checkout con datos de envío colombianos (departamentos, ciudades) | ✅ Funcionando |
-| Pagos con tarjeta crédito/débito vía MercadoPago | ✅ Funcionando |
-| Pagos con Nequi y PSE | ✅ Funcionando |
-| Pagos por transferencia bancaria (Davivienda) | ✅ Funcionando |
-| Cuotas hasta 12 meses | ✅ Funcionando |
-| Verificación de stock en tiempo real antes de pagar | ✅ Funcionando |
-| Rastreo de envíos Servientrega integrado en la tienda | ✅ Funcionando |
-| Asistente de compra con Inteligencia Artificial ("Tecno") | ✅ Funcionando |
-| Búsqueda inteligente con Algolia (resultados en milisegundos) | ✅ Funcionando |
-| Página para empresas (B2B) con cotizaciones | ✅ Funcionando |
-| Blog corporativo conectado a WordPress | ✅ Funcionando |
-| Botón de WhatsApp para garantías y soporte | ✅ Funcionando |
-| Indicador de envío gratis (compras >$500.000) | ✅ Funcionando |
-| Aplicación instalable en celular (PWA) | ✅ Funcionando |
-| Barra de confianza (DIAN, garantía, envío gratis, original) | ✅ Funcionando |
+|---------|:------:|
+| Catálogo de productos con filtros y ordenamiento | ✅ |
+| Carrito de compras persistente (sobrevive al cerrar el navegador) | ✅ |
+| Checkout con departamentos y ciudades de Colombia | ✅ |
+| Verificación de stock en tiempo real antes de cada pago | ✅ |
+| Rastreo de envíos Servientrega (ingeniería inversa de 3 APIs) | ✅ |
+| Asistente de compra con IA ("Tecno") — conoce inventario real | ✅ |
+| Búsqueda instantánea con Algolia (resultados en <1ms) | ✅ |
+| Página para empresas (B2B) con formulario de cotización | ✅ |
+| Blog corporativo conectado a WordPress | ✅ |
+| Botón flotante de WhatsApp en todas las páginas | ✅ |
+| Barra de confianza (Original, Garantía, Envío Gratis, DIAN) | ✅ |
+| Indicador de envío gratis (compras >$500.000) | ✅ |
+| Aplicación instalable en celular (PWA) | ✅ |
+| Navegación inferior móvil (BottomNav) | ✅ |
 
-### Páginas Legales (Requisito para facturación electrónica DIAN)
-| Página | Estado |
-|--------|--------|
-| Términos y Condiciones | ✅ Publicada |
-| Política de Privacidad (Ley 1581 de 2012) | ✅ Publicada |
-| Política de Envíos | ✅ Publicada |
-| Derecho de Retracto (Ley 1480 de 2011, Art. 47) | ✅ Publicada |
+### 2.3 SEO técnico
 
+| Elemento | Implementado |
+|----------|:------------:|
+| Metadatos por página (title, description, Open Graph) | ✅ |
+| Sitemap XML dinámico (se actualiza con cada producto nuevo) | ✅ |
+| robots.txt configurado | ✅ |
+| Archivos llms.txt y llms-full.txt para IAs | ✅ |
+| 5 landing pages SEO (Dólar, Salario, Día de la Madre, Nequi, Rastreo) | ✅ |
+| Redirects 301 de todas las URLs antiguas de WordPress | ✅ |
+| 23 páginas indexadas en Google | ✅ |
 ---
 
 ## 3. SEGURIDAD
 
-Se realizó una **auditoría de seguridad profesional** simulando un ataque real desde el exterior (pruebas de penetración black-box). Resultados:
+Auditoría de seguridad realizada con pruebas de penetración externas:
 
-| Área | Calificación |
-|------|:------------:|
-| Protección contra ataques XSS (inyección de código malicioso) | ✅ Seguro |
-| Protección contra inyección SQL | ✅ Seguro |
-| Protección contra clickjacking (suplantación de interfaz) | ✅ Seguro |
-| Encriptación HTTPS obligatoria | ✅ Activo (HSTS 2 años) |
-| Archivos internos no expuestos (.env, código fuente, contraseñas) | ✅ Protegido |
-| Verificación de pagos contra manipulación de precios | ✅ Activo |
-| Límite de solicitudes para prevenir abuso (rate limiting) | ✅ Activo por IP |
-| Bloqueo de intentos de acceso a panel WordPress desde la tienda | ✅ Activo |
-| Firmas digitales en comunicación con WooCommerce (webhooks) | ⚠️ En configuración |
-| Seguridad del panel WordPress (wp-login) | ⚠️ Necesita restricción por IP |
-
----
-
-## 4. ESTADO ACTUAL DE LA TIENDA
-
-| Componente | Estado | Nota |
-|------------|:------:|------|
-| Tienda funcionando en producción | ✅ | www.tecnophone.co |
-| Pagos procesándose correctamente | ✅ | MercadoPago + Transferencia |
-| SEO indexado en Google | ✅ | 23 páginas, sitemap dinámico |
-| Auditoría de seguridad completada | ✅ | 14 de 16 tests pasados |
-| Asistente AI funcionando | ✅ | "Tecno" con Groq/Llama |
-| Búsqueda inteligente Algolia | ✅ | Resultados en <1ms |
-| Webhook auto-sync de stock | ⚠️ | En configuración final |
-| Ajustes de seguridad WordPress | ⚠️ | 3 ajustes pendientes en hosting |
-
-**Progreso general: ~95% completado**
+| Área | Estado |
+|------|:------:|
+| Protección contra XSS | ✅ |
+| Protección contra inyección SQL | ✅ |
+| Protección contra clickjacking (X-Frame-Options: DENY) | ✅ |
+| HTTPS obligatorio (HSTS 2 años, incluye subdominios, preload) | ✅ |
+| Content Security Policy configurado | ✅ |
+| Archivos internos no expuestos (.env, código fuente) | ✅ |
+| Verificación de pagos contra manipulación de precios | ✅ |
+| Rate limiting por IP en endpoints de API | ✅ |
+| Bloqueo de acceso a /wp-admin, /wp-login.php desde la tienda | ✅ |
+| Permisos de cámara, micrófono y geolocalización deshabilitados | ✅ |
+| Redirects 301 de 30+ rutas legacy de WordPress | ✅ |
+| Middleware de validación de rutas conocidas | ✅ |
+| Validación de inputs en formularios y APIs | ✅ |
+| Header X-Content-Type-Options: nosniff | ✅ |
+| Header poweredByHeader deshabilitado | ✅ |
+| Firmas HMAC para webhooks WooCommerce | ⚠️ En configuración |
+| Restricción por IP del panel WordPress | ⚠️ Pendiente en hosting |
 
 ---
 
-## 5. TIEMPO DE IMPLEMENTACIÓN
+## 4. RENDIMIENTO
 
-### Contexto importante:
-> Todo el desarrollo fue realizado por **un único profesional** que simultáneamente cumple funciones de desarrollador full-stack, administrador web, gestor de contenido, soporte técnico e investigador. No se contó con un equipo de desarrollo dedicado.
-
-### Desglose por fases:
-
-| Fase | Descripción | Horas Estimadas |
-|------|-------------|:---------------:|
-| **Fase 1 — Arquitectura y Migración** | Investigar y aprender Next.js 14 App Router, configurar proyecto desde cero, diseño responsive completo, sistema de rutas, middleware, migración de dominio WordPress, redirects de URLs antiguas, configuración DNS y SSL | **250-300h** |
-| **Fase 2 — E-commerce Core** | Sistema de carrito con persistencia, checkout de 2 pasos, integración completa MercadoPago (tarjetas, Nequi, PSE, cuotas), transferencias bancarias, verificación de stock en tiempo real, manejo de variaciones de producto, departamentos colombianos | **180-220h** |
-| **Fase 3 — Búsqueda Inteligente** | Evaluación de motores de búsqueda, migración de MeiliSearch a Algolia, configuración de índices, script de sincronización masiva, búsqueda instantánea con fallback, Auto sincronización por webhook | **60-80h** |
-| **Fase 4 — SEO y Contenido** | Sitemap dinámico, robots.txt avanzado, metadatos por página, JSON-LD schemas, 5 landing pages SEO con datos en tiempo real (API TRM del gobierno, salario mínimo), optimización para LLMs e inteligencias artificiales (llms.txt) | **90-110h** |
-| **Fase 5 — Funcionalidades Avanzadas** | Asistente de compras con Inteligencia Artificial (integración Groq/Llama con contexto de inventario real), rastreo de envíos Servientrega (ingeniería inversa de 3 APIs sin documentación pública), página empresas B2B, blog corporativo | **80-100h** |
-| **Fase 6 — Legal y Compliance** | Investigación de leyes colombianas (Ley 1480, Ley 1581, Decreto 1377), redacción de 4 páginas legales con contenido real de la empresa, badge de factura electrónica DIAN | **30-40h** |
-| **Fase 7 — Seguridad** | Auditoría completa, implementación de Content Security Policy, HSTS, rate limiting por endpoint, firmas HMAC para webhooks, validación de todos los inputs, anti-tampering de pagos, pruebas de penetración externas | **50-70h** |
-| **Fase 8 — Performance** | Optimización de imágenes (AVIF/WebP), sistema de caché en 3 capas (ISR + memoria + GraphQL), lazy loading de componentes, Edge runtime para APIs de baja latencia, optimización Lighthouse | **40-60h** |
-| **Fase 9 — Debugging y Mantenimiento** | Corrección de errores de hidratación React, errores de build, problemas de imágenes, bugs de producción, errores de encoding Unicode, actualizaciones de dependencias | **80-100h** |
-| **Fase 10 — Configuración Final** | Webhook de stock + ajustes de seguridad WordPress + limpieza de código legacy | **30-40h** |
-| | | |
-| | **TOTAL ESTIMADO** | **~900-1,100 horas** |
-
-### En tiempo calendario:
-
-| Escenario | Duración estimada |
-|-----------|:-:|
-| Desarrollador dedicado 100% (8h/día) | ~5-6 meses |
-| **Realista: desarrollador + admin web (4-5h/día efectivas de desarrollo)** | **~8-10 meses** |
-| Con interrupciones frecuentes (3h/día efectivas) | ~12-14 meses |
-
-### Trabajo que no se refleja en código pero consumió tiempo significativo:
-- **Investigación y aprendizaje** de tecnologías nuevas (Next.js 14, WPGraphQL, MercadoPago Bricks, Algolia, Groq AI)
-- **Ingeniería inversa** de las APIs de Servientrega (no tienen documentación pública)
-- **Debugging de producción** — Errores que solo aparecen en el servidor de Vercel, no en la computadora local
-- **Prueba y error con MercadoPago** — Documentación incompleta para el mercado colombiano
-- **Investigación legal colombiana** — Leyes 1480, 1581, Decreto 1377 para compliance
-- **Context switching** — Alternar entre programar, gestionar productos, atender clientes, y resolver problemas de hosting
+| Métrica | Valor |
+|---------|:-----:|
+| Tiempo de carga primera visita | < 1.5 segundos |
+| Navegación entre páginas | < 0.3 segundos |
+| Google Lighthouse Performance | 90+/100 |
+| Formato de imágenes | AVIF/WebP automático |
+| Caché de assets estáticos | 1 año (immutable) |
+| Compresión | Habilitada |
+| Optimización de paquetes | lucide-react tree-shaking |
 
 ---
 
-## 6. ¿QUÉ TIENE LA TIENDA QUE NO TIENEN OTRAS?
+## 5. INTEGRACIONES ACTIVAS
 
-| Ventaja Competitiva | Detalle |
-|---------------------|---------|
-| **Velocidad superior** | Carga en < 1.5 segundos. La mayoría de tiendas WooCommerce en Colombia cargan en 3-8 segundos |
-| **Asistente AI integrado** | Un chatbot inteligente que conoce todo el inventario y recomienda productos en lenguaje natural |
-| **Optimizada para ChatGPT y Perplexity** | Cuando alguien le pregunta a una IA dónde comprar tecnología en Colombia, nuestra tienda puede ser recomendada |
-| **Landing pages que atraen tráfico** | Páginas como "Dólar Hoy" y "Salario Mínimo" captan visitantes de búsquedas populares y los convierten en clientes potenciales |
-| **Verificación de stock en tiempo real** | El cliente **nunca** puede pagar por un producto agotado |
-| **Protección anti-fraude en pagos** | El sistema verifica que el monto cobrado coincida con el precio real (previene manipulación de precios) |
-| **PWA instalable** | Los clientes pueden "instalar" la tienda en su celular como una app nativa |
-| **Búsqueda en milisegundos** | Algolia devuelve resultados en menos de 1ms, como Amazon o MercadoLibre |
-
----
-
-## 7. SERVICIOS E INTEGRACIONES ACTIVAS
-
-| Servicio | Para qué sirve | Costo mensual |
-|----------|----------------|:-------------:|
-| **Vercel** | Hosting de la tienda (CDN en 70+ países) | Plan gratuito/Pro |
-| **WordPress + WooCommerce** | Gestión de productos e inventario | Hosting existente |
-| **MercadoPago** | Cobros con tarjeta, Nequi, PSE | Comisión por venta (~3.5%) |
-| **Algolia** | Búsqueda inteligente de productos | Gratuito (10K búsquedas/mes) |
-| **Groq** | Motor de IA del chatbot asistente | Gratuito |
-| **Servientrega** | Rastreo de envíos integrado | Sin costo adicional |
-| **datos.gov.co** | Tasa de cambio oficial del dólar (TRM) | Gratuito (API del gobierno) |
+| Servicio | Función | Costo |
+|----------|---------|:-----:|
+| Vercel | Hosting frontend (CDN 70+ países) | Gratuito/Pro |
+| WordPress + WooCommerce | Backend de productos e inventario | Hosting existente |
+| WPGraphQL | Conexión frontend ↔ backend | Gratuito |
+| MercadoPago (Bricks SDK) | Pagos: tarjetas, Nequi, PSE, cuotas | Comisión ~3.5% |
+| Algolia | Búsqueda instantánea de productos | Gratuito (10K/mes) |
+| Groq (Llama) | Motor de IA del asistente "Tecno" | Gratuito |
+| Servientrega | Rastreo de envíos | Sin costo |
+| datos.gov.co | TRM oficial del dólar | Gratuito (API gobierno) |
+| Sharp | Optimización de imágenes server-side | Incluido |
 
 ---
 
-## 8. PENDIENTES Y PRÓXIMOS PASOS
+## 6. ESTADO ACTUAL
 
-| Prioridad | Acción | Tiempo estimado |
-|-----------|--------|:---------------:|
-| 🔴 Inmediato | Completar configuración del webhook de sincronización automática de stock | 2-3 horas |
-| 🔴 Inmediato | Aplicar 3 ajustes de seguridad en el hosting de WordPress | 1-2 horas |
-| 🟡 Corto plazo | Eliminar código y dependencias del motor de búsqueda anterior (MeiliSearch) | 1 hora |
-| 🟡 Corto plazo | Agregar posts del blog al sitemap | 30 min |
-| 🟢 Mediano plazo | Implementar Google Analytics 4 para métricas de conversión | 3-4 horas |
-| 🟢 Largo plazo | Notificaciones push, programa de fidelidad, reviews de productos | Por definir |
+| Componente | Estado |
+|------------|:------:|
+| Tienda funcionando en producción (www.tecnophone.co) | ✅ |
+| Pagos procesándose (MercadoPago + transferencia) | ✅ |
+| 23 páginas indexadas en Google | ✅ |
+| Sitemap dinámico | ✅ |
+| Auditoría de seguridad (14/16 tests aprobados) | ✅ |
+| Asistente AI "Tecno" | ✅ |
+| Búsqueda Algolia | ✅ |
+| PWA instalable | ✅ |
+| Páginas legales publicadas (4) | ✅ |
+| Webhook auto-sync de stock | ⚠️ En configuración |
+| Ajustes de seguridad WordPress (3 pendientes) | ⚠️ Pendiente en hosting |
 
----
-
-## 9. CONCLUSIÓN
-
-La tienda **www.tecnophone.co** se encuentra en un **estado de producción sólido al 95%** de completitud. Está procesando ventas, apareciendo en buscadores, y ofreciendo una experiencia de compra superior a la mayoría de tiendas de tecnología en Colombia.
-
-El 5% restante corresponde a configuraciones de infraestructura (sincronización de stock y ajustes de hosting) que no afectan la capacidad de venta actual, ya que el sistema verifica stock en tiempo real antes de cada compra.
-
-El proyecto representa un trabajo de aproximadamente **900-1,100 horas** ejecutado por un solo profesional que simultáneamente cumple roles de desarrollador, administrador web y soporte técnico.
+Completitud general: **~95%**
 
 ---
 
-*Informe preparado con base en auditoría técnica del código fuente y pruebas de seguridad externas realizadas el 25-26 de marzo de 2026.*
+## 7. HORAS DE TRABAJO
+
+| Fase | Descripción | Horas |
+|------|-------------|:-----:|
+| Fase 1 — Arquitectura y Migración | Next.js 14, diseño responsive, sistema de rutas, middleware, migración DNS/SSL, redirects WordPress | 250-300h |
+| Fase 2 — E-commerce Core | Carrito, checkout, MercadoPago completo, stock en tiempo real, variaciones, departamentos colombianos | 180-220h |
+| Fase 3 — Búsqueda | Evaluación MeiliSearch → migración a Algolia, sincronización, búsqueda instantánea | 60-80h |
+| Fase 4 — SEO y Contenido | Sitemap, robots.txt, metadatos, 5 landing pages con APIs en tiempo real, llms.txt | 90-110h |
+| Fase 5 — Funcionalidades Avanzadas | Asistente AI con inventario, rastreo Servientrega (ingeniería inversa), B2B, blog | 80-100h |
+| Fase 6 — Legal y Compliance | Investigación leyes colombianas, redacción 4 páginas legales, badge DIAN | 30-40h |
+| Fase 7 — Seguridad | Auditoría, CSP, HSTS, rate limiting, HMAC, validación, anti-tampering pagos | 50-70h |
+| Fase 8 — Performance | AVIF/WebP, caché 3 capas, lazy loading, Lighthouse | 40-60h |
+| Fase 9 — Debugging | Errores de hidratación, build, producción, encoding, dependencias | 80-100h |
+| Fase 10 — Configuración Final | Webhook stock, seguridad WordPress, limpieza legacy | 30-40h |
+| **TOTAL** | | **890-1,120h** |
+
+Trabajo ejecutado por una sola persona cumpliendo simultáneamente funciones de: desarrollador full-stack, administrador web, gestor de contenido, soporte técnico y gestor de marketplaces (MercadoLibre, Falabella).
+
+---
+
+## 8. ARCHIVOS DEL PROYECTO
+
+| Concepto | Cantidad |
+|----------|:--------:|
+| Archivos de código fuente | ~80+ |
+| Páginas/rutas | 23 |
+| Componentes React | 20+ |
+| API endpoints | 8 |
+| Scripts de automatización | 2 |
+| Dependencias de producción | 12 |
+| Dependencias de desarrollo | 10 |
+
+---
+
+*Informe preparado el 27 de marzo de 2026 con base en auditoría del código fuente del repositorio tecnophone-headless.*
