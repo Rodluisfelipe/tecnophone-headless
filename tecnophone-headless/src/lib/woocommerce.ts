@@ -48,7 +48,24 @@ function setCache<T>(key: string, data: T, ttlSeconds: number): void {
     memCache.forEach((v, k) => {
       if (now > v.expires) memCache.delete(k);
     });
+
   }
+}
+
+/** Invalidate all cached entries for a product (by slug and/or id). Called by webhooks. */
+export function invalidateProductCache(slug?: string, productId?: number): void {
+  if (slug) {
+    memCache.delete(`product_${slug}`);
+  }
+  if (productId) {
+    memCache.delete(`product_id_${productId}`);
+  }
+  // Also clear the products list caches so catalog pages get fresh data
+  memCache.forEach((_v, key) => {
+    if (key.startsWith('products_') || key.startsWith('search_')) {
+      memCache.delete(key);
+    }
+  });
 }
 
 // ============ ORDERBY MAPPING ============

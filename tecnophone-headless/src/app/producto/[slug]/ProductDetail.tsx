@@ -61,9 +61,11 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
   const monthlyPrice = price > 0 ? Math.round(price / 12) : 0;
   const [inStock, setInStock] = useState(product.stock_status !== 'outofstock');
 
-  // Poll stock every 60s so the UI updates if a product sells out while the user is browsing
+  // Poll stock so the UI updates if availability changes while the user is browsing
   useEffect(() => {
     if (product.type === 'external') return;
+    let lastKnown = product.stock_status !== 'outofstock';
+
     const check = () => {
       fetch('/api/stock-check', {
         method: 'POST',
@@ -73,18 +75,34 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
         .then((r) => r.ok ? r.json() : null)
         .then((data) => {
           if (!data) return;
-          const wasInStock = inStock;
           const nowInStock = data.valid === true;
-          setInStock(nowInStock);
-          if (wasInStock && !nowInStock) {
+          if (lastKnown && !nowInStock) {
             toast.error('Este producto se acaba de agotar');
+          } else if (!lastKnown && nowInStock) {
+            toast.success('¡Este producto volvió a estar disponible!');
           }
+          lastKnown = nowInStock;
+          setInStock(nowInStock);
         })
         .catch(() => {});
     };
-    const id = setInterval(check, 60_000);
-    return () => clearInterval(id);
-  }, [product.id, product.type, inStock]);
+
+    // First check after 5 seconds, then every 60 seconds
+    const initialTimer = setTimeout(check, 5_000);
+    const interval = setInterval(check, 60_000);
+
+    // Also check when the user returns to the tab
+    const onFocus = () => check();
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') onFocus();
+    });
+
+    return () => {
+      clearTimeout(initialTimer);
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onFocus);
+    };
+  }, [product.id, product.type, product.stock_status]);
   const isFull = product.categories?.some((c) => c.slug === 'full');
   const displayCategory = product.categories?.find((c) => !['full', 'sin-categorizar', 'uncategorized'].includes(c.slug));
 

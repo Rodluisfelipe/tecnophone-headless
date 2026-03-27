@@ -7,6 +7,7 @@ import {
   isAlgoliaAdminConfigured,
   AlgoliaProduct,
 } from '@/lib/algolia';
+import { invalidateProductCache } from '@/lib/woocommerce';
 
 // Shared secret for webhook validation
 const WEBHOOK_SECRET = process.env.WC_WEBHOOK_SECRET || '';
@@ -171,6 +172,7 @@ export async function POST(request: NextRequest) {
 
     if (topic === 'product.deleted') {
       if (algoliaReady) await deleteProductFromAlgolia(productId);
+      invalidateProductCache(undefined, productId);
       revalidateAllProductPages();
       console.log(`[Webhook] Deleted product ${productId} from Algolia`);
       return NextResponse.json({ status: 'deleted', id: productId });
@@ -192,6 +194,9 @@ export async function POST(request: NextRequest) {
       const algoliaDoc = mapToAlgoliaProduct(wcProduct);
       await saveProduct(algoliaDoc);
     }
+
+    // Clear in-memory cache for this product so fresh data is served
+    invalidateProductCache(wcProduct.slug, productId);
 
     // Revalidate all cached pages so ISR picks up the change immediately
     revalidateAllProductPages(wcProduct.slug, wcProduct.categories);
