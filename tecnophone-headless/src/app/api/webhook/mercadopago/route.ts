@@ -183,7 +183,13 @@ async function updateWCOrderStatus(
   }
 }
 
-// Reject non-POST requests
+// Health-check endpoint — verify webhook connectivity and env config
 export async function GET() {
-  return new NextResponse(null, { status: 405 });
+  return NextResponse.json({
+    status: 'ok',
+    endpoint: '/api/webhook/mercadopago',
+    access_token_configured: !!ACCESS_TOKEN,
+    webhook_secret_configured: !!MP_WEBHOOK_SECRET,
+    timestamp: new Date().toISOString(),
+  });
 }

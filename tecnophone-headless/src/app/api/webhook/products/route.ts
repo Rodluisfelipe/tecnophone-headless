@@ -86,11 +86,19 @@ function revalidateAllProductPages(slug?: string, categories?: { slug: string }[
 }
 
 export async function POST(request: NextRequest) {
-  // Validate webhook secret via HMAC-SHA256 signature
   const signature = request.headers.get('x-wc-webhook-signature') || '';
   const topic = request.headers.get('x-wc-webhook-topic') || '';
+  const webhookId = request.headers.get('x-wc-webhook-id') || 'unknown';
+  const deliveryId = request.headers.get('x-wc-webhook-delivery-id') || 'unknown';
+  const source = request.headers.get('x-wc-webhook-source') || 'unknown';
 
-  const rawBody = await request.text();
+  console.log(
+    `[WC Webhook] Received: topic=${topic}, webhook_id=${webhookId}, delivery_id=${deliveryId}, source=${source}, has_signature=${!!signature}`
+  );
+
+  // Read raw bytes to avoid encoding roundtrip issues with HMAC
+  const rawBuffer = await request.arrayBuffer();
+  const rawBody = new TextDecoder().decode(rawBuffer);
 
   if (!WEBHOOK_SECRET) {
     console.error('[WC Webhook] WC_WEBHOOK_SECRET not configured — rejecting');
@@ -99,17 +107,30 @@ export async function POST(request: NextRequest) {
 
   if (signature) {
     const expectedSig = createHmac('sha256', WEBHOOK_SECRET)
-      .update(rawBody, 'utf8')
+      .update(Buffer.from(rawBuffer))
       .digest('base64');
     const expectedBuf = Buffer.from(expectedSig, 'utf8');
     const receivedBuf = Buffer.from(signature, 'utf8');
     if (expectedBuf.length !== receivedBuf.length || !timingSafeEqual(expectedBuf, receivedBuf)) {
-      console.error(`[WC Webhook] Signature mismatch — secret len=${WEBHOOK_SECRET.length}, received sig len=${signature.length}, expected sig len=${expectedSig.length}`);
+      console.error(`[WC Webhook] Signature mismatch — secret_len=${WEBHOOK_SECRET.length}, received="${signature.slice(0, 12)}…", expected="${expectedSig.slice(0, 12)}…", body_len=${rawBuffer.byteLength}`);
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
   } else {
-    console.error('[WC Webhook] Missing x-wc-webhook-signature header');
-    return NextResponse.json({ error: 'Missing signature' }, { status: 401 });
+    // WooCommerce only sends the signature header when the webhook has a secret configured.
+    // If this fires, the webhook in WP Admin → WooCommerce → Webhooks is missing its secret.
+    console.error(
+      `[WC Webhook] Missing x-wc-webhook-signature header. ` +
+      `This means the webhook in WooCommerce (id=${webhookId}) does NOT have a secret configured. ` +
+      `Go to WP Admin → WooCommerce → Settings → Advanced → Webhooks → edit webhook #${webhookId} → ` +
+      `paste the secret and save.`
+    );
+    return NextResponse.json(
+      {
+        error: 'Missing signature',
+        fix: 'The WooCommerce webhook does not have a secret configured. Edit the webhook in WP Admin → WooCommerce → Settings → Advanced → Webhooks and paste the secret into the Secret field.',
+      },
+      { status: 401 }
+    );
   }
 
   try {
@@ -162,7 +183,13 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Reject non-POST requests
+// Health-check endpoint — verify webhook connectivity and env config
 export async function GET() {
-  return new NextResponse(null, { status: 405 });
+  return NextResponse.json({
+    status: 'ok',
+    endpoint: '/api/webhook/products',
+    secret_configured: !!WEBHOOK_SECRET,
+    algolia_configured: isAlgoliaAdminConfigured(),
+    timestamp: new Date().toISOString(),
+  });
 }
