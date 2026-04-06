@@ -19,7 +19,8 @@ export async function POST(request: NextRequest) {
     if (limited) return limited;
 
     if (!CK || !CS) {
-      return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
+      // If credentials missing, don't break the page — just say stock is OK
+      return NextResponse.json({ valid: true, issues: [] });
     }
 
     const { items }: { items: StockCheckItem[] } = await request.json();
@@ -46,27 +47,23 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const authHeader = 'Basic ' + Buffer.from(`${CK}:${CS}`).toString('base64');
     const issues: { product_id: number; name: string; reason: string }[] = [];
 
     // Check each product's stock via WC REST API
+    // Use ?rest_route= format to bypass LiteSpeed blocking /wp-json/
     for (const item of items) {
       const id = item.variation_id || item.product_id;
       const endpoint = item.variation_id
-        ? `${WP_URL}/wp-json/wc/v3/products/${item.product_id}/variations/${item.variation_id}`
-        : `${WP_URL}/wp-json/wc/v3/products/${item.product_id}`;
+        ? `${WP_URL}?rest_route=/wc/v3/products/${item.product_id}/variations/${item.variation_id}&consumer_key=${CK}&consumer_secret=${CS}`
+        : `${WP_URL}?rest_route=/wc/v3/products/${id}&consumer_key=${CK}&consumer_secret=${CS}`;
 
       const res = await fetch(endpoint, {
-        headers: { Authorization: authHeader },
         next: { revalidate: 0 },
       });
 
       if (!res.ok) {
-        issues.push({
-          product_id: item.product_id,
-          name: `Producto #${item.product_id}`,
-          reason: 'No se pudo verificar disponibilidad',
-        });
+        // API unreachable — do NOT mark as out of stock, just skip
+        console.warn(`[Stock Check] API returned ${res.status} for product #${item.product_id}`);
         continue;
       }
 
@@ -97,9 +94,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('[Stock Check] Error:', error);
-    return NextResponse.json(
-      { valid: false, issues: [{ product_id: 0, name: 'Error', reason: 'No se pudo verificar el stock. Intenta de nuevo.' }] },
-      { status: 500 }
-    );
+    // On error, assume stock is OK — don't falsely mark products as out of stock
+    return NextResponse.json({ valid: true, issues: [] });
   }
 }

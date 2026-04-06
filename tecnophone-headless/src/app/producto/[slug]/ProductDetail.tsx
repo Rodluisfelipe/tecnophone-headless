@@ -75,10 +75,12 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
         .then((r) => r.ok ? r.json() : null)
         .then((data) => {
           if (!data) return;
-          const nowInStock = data.valid === true;
+          // Only act on definitive out-of-stock (issues array has a real "Agotado" reason)
+          const isDefinitelyOut = data.issues?.some((i: { reason: string }) => i.reason === 'Agotado');
+          const nowInStock = !isDefinitelyOut;
           if (lastKnown && !nowInStock) {
             toast.error('Este producto se acaba de agotar');
-          } else if (!lastKnown && nowInStock) {
+          } else if (!lastKnown && nowInStock && data.issues?.length === 0) {
             toast.success('¡Este producto volvió a estar disponible!');
           }
           lastKnown = nowInStock;
