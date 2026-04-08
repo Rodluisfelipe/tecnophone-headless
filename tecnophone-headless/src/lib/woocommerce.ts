@@ -317,8 +317,10 @@ async function getProductBrandMap(): Promise<Map<number, { id: number; name: str
     let page = 1;
     let hasMore = true;
     while (hasMore) {
-      const url = `${baseUrl}/?rest_route=/wc/v3/products&per_page=100&page=${page}&_fields=id,brands&status=publish&consumer_key=${ck}&consumer_secret=${cs}`;
+      const authHeader = 'Basic ' + Buffer.from(`${ck}:${cs}`).toString('base64');
+      const url = `${baseUrl}/wp-json/wc/v3/products?per_page=100&page=${page}&_fields=id,brands&status=publish`;
       const res = await fetch(url, {
+        headers: { 'Authorization': authHeader },
         next: { revalidate: 1800 },
       });
       if (!res.ok) break;
@@ -371,10 +373,12 @@ export async function getBrands(): Promise<WCBrand[]> {
   const baseUrl = process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://wp.tecnophone.co';
   const ck = process.env.WC_CONSUMER_KEY || '';
   const cs = process.env.WC_CONSUMER_SECRET || '';
-  const url = `${baseUrl}/?rest_route=/wc/v3/products/brands&per_page=100&consumer_key=${ck}&consumer_secret=${cs}`;
+  const authHeader = 'Basic ' + Buffer.from(`${ck}:${cs}`).toString('base64');
+  const url = `${baseUrl}/wp-json/wc/v3/products/brands?per_page=100`;
 
   try {
     const res = await fetch(url, {
+      headers: { 'Authorization': authHeader },
       next: { revalidate: 1800 },
     });
     if (!res.ok) return [];

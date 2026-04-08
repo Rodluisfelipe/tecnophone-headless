@@ -27,9 +27,9 @@ function toStateCode(state: string): string {
   return STATE_MAP[state] || `CO-${state}`;
 }
 
-// Build Store API URL using ?rest_route= to bypass LiteSpeed blocking /wp-json/
+// Build Store API URL — use /wp-json/ now that it's unblocked
 function storeUrl(path: string): string {
-  return `${WP_URL}/?rest_route=/wc/store/v1${path}`;
+  return `${WP_URL}/wp-json/wc/store/v1${path}`;
 }
 
 // Collect Set-Cookie headers from a response into a forwarding string
@@ -252,8 +252,13 @@ async function restApiCheckout(body: CheckoutBody): Promise<NextResponse> {
 
   const jsonBody = JSON.stringify(orderData);
 
-  // Define auth strategies to try in order
+  // Define auth strategies to try in order (BasicAuth+WpJson confirmed working)
   const strategies: { name: string; url: string; headers: Record<string, string> }[] = [
+    {
+      name: 'BasicAuth+WpJson',
+      url: `${WP_URL}/wp-json/wc/v3/orders`,
+      headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
+    },
     {
       name: 'BasicAuth+RestRoute',
       url: `${WP_URL}/?rest_route=/wc/v3/orders`,
@@ -263,11 +268,6 @@ async function restApiCheckout(body: CheckoutBody): Promise<NextResponse> {
       name: 'QueryParams+RestRoute',
       url: `${WP_URL}/?rest_route=/wc/v3/orders&consumer_key=${CK}&consumer_secret=${CS}`,
       headers: { 'Content-Type': 'application/json' },
-    },
-    {
-      name: 'BasicAuth+WpJson',
-      url: `${WP_URL}/wp-json/wc/v3/orders`,
-      headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
     },
   ];
 

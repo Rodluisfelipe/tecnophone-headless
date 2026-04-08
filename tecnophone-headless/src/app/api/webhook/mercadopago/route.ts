@@ -165,7 +165,7 @@ async function updateWCOrderStatus(
   const authHeader = 'Basic ' + Buffer.from(`${CK}:${CS}`).toString('base64');
 
   const res = await fetch(
-    `${WP_URL}/?rest_route=/wc/v3/orders/${orderId}&consumer_key=${CK}&consumer_secret=${CS}`,
+    `${WP_URL}/wp-json/wc/v3/orders/${orderId}`,
     {
       method: 'PUT',
       headers: {

@@ -103,9 +103,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Error de configuración del servidor' }, { status: 500 });
       }
 
+      const authHeader = 'Basic ' + Buffer.from(`${CK}:${CS}`).toString('base64');
       const orderRes = await fetch(
-        `${WP_URL}/?rest_route=/wc/v3/orders/${body.order_id}&consumer_key=${CK}&consumer_secret=${CS}`,
-        { headers: { 'Authorization': 'Basic ' + Buffer.from(`${CK}:${CS}`).toString('base64') } }
+        `${WP_URL}/wp-json/wc/v3/orders/${body.order_id}`,
+        { headers: { 'Authorization': authHeader } }
       );
 
       if (!orderRes.ok) {
@@ -183,13 +184,14 @@ async function updateWCOrderStatus(
   if (!CK || !CS) return;
 
   try {
+    const authHeader = 'Basic ' + Buffer.from(`${CK}:${CS}`).toString('base64');
     await fetch(
-      `${WP_URL}/?rest_route=/wc/v3/orders/${orderId}&consumer_key=${CK}&consumer_secret=${CS}`,
+      `${WP_URL}/wp-json/wc/v3/orders/${orderId}`,
       {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Basic ' + Buffer.from(`${CK}:${CS}`).toString('base64'),
+          'Authorization': authHeader,
         },
         body: JSON.stringify({
           status,

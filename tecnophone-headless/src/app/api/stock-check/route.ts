@@ -50,14 +50,15 @@ export async function POST(request: NextRequest) {
     const issues: { product_id: number; name: string; reason: string }[] = [];
 
     // Check each product's stock via WC REST API
-    // Use ?rest_route= format to bypass LiteSpeed blocking /wp-json/
+    const authHeader = 'Basic ' + Buffer.from(`${CK}:${CS}`).toString('base64');
     for (const item of items) {
       const id = item.variation_id || item.product_id;
       const endpoint = item.variation_id
-        ? `${WP_URL}?rest_route=/wc/v3/products/${item.product_id}/variations/${item.variation_id}&consumer_key=${CK}&consumer_secret=${CS}`
-        : `${WP_URL}?rest_route=/wc/v3/products/${id}&consumer_key=${CK}&consumer_secret=${CS}`;
+        ? `${WP_URL}/wp-json/wc/v3/products/${item.product_id}/variations/${item.variation_id}`
+        : `${WP_URL}/wp-json/wc/v3/products/${id}`;
 
       const res = await fetch(endpoint, {
+        headers: { 'Authorization': authHeader },
         next: { revalidate: 0 },
       });
 
