@@ -5,7 +5,11 @@ import { isPositiveInt, isValidEmail, stripHtml, truncate } from '@/lib/validati
 const WP_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL || 'https://wp.tecnophone.co';
 const CK = process.env.WC_CONSUMER_KEY;
 const CS = process.env.WC_CONSUMER_SECRET;
-const STORE_API = `${WP_URL}/wp-json/wc/store/v1`;
+
+// LiteSpeed blocks /wp-json/ paths → use ?rest_route= format
+function storeApiUrl(path: string): string {
+  return `${WP_URL}/?rest_route=/wc/store/v1${path}`;
+}
 
 // Colombian department name → WooCommerce state code mapping
 const STATE_MAP: Record<string, string> = {
@@ -64,7 +68,7 @@ async function storeApiCheckout(body: CheckoutBody): Promise<NextResponse | null
 
   try {
     // Step 1: GET cart to obtain nonce + cart token
-    const cartRes = await fetch(`${STORE_API}/cart`);
+    const cartRes = await fetch(storeApiUrl('/cart'));
     if (!cartRes.ok) return null;
 
     const nonce = cartRes.headers.get('nonce') || '';
@@ -76,7 +80,7 @@ async function storeApiCheckout(body: CheckoutBody): Promise<NextResponse | null
 
     for (const item of body.line_items) {
       const itemId = item.variation_id || item.product_id;
-      const res = await fetch(`${STORE_API}/cart/add-item`, {
+      const res = await fetch(storeApiUrl('/cart/add-item'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -128,7 +132,7 @@ async function storeApiCheckout(body: CheckoutBody): Promise<NextResponse | null
         }
       : billingAddress;
 
-    const checkoutRes = await fetch(`${STORE_API}/checkout`, {
+    const checkoutRes = await fetch(storeApiUrl('/checkout'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -170,7 +174,6 @@ async function storeApiCheckout(body: CheckoutBody): Promise<NextResponse | null
 
 /* ─── REST API checkout (fallback) ─── */
 async function restApiCheckout(body: CheckoutBody): Promise<NextResponse> {
-  const authHeader = 'Basic ' + Buffer.from(`${CK}:${CS}`).toString('base64');
   const isBacs = body.payment_method === 'bacs';
 
   const orderData = {
@@ -195,12 +198,10 @@ async function restApiCheckout(body: CheckoutBody): Promise<NextResponse> {
     customer_note: body.customer_note || '',
   };
 
-  const res = await fetch(`${WP_URL}/wp-json/wc/v3/orders`, {
+  const restUrl = `${WP_URL}/?rest_route=/wc/v3/orders&consumer_key=${CK}&consumer_secret=${CS}`;
+  const res = await fetch(restUrl, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: authHeader,
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(orderData),
   });
 
