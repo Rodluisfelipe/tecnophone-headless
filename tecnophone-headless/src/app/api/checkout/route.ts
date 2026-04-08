@@ -253,7 +253,7 @@ async function restApiCheckout(body: CheckoutBody): Promise<NextResponse> {
   const jsonBody = JSON.stringify(orderData);
 
   // Define auth strategies to try in order
-  const strategies = [
+  const strategies: { name: string; url: string; headers: Record<string, string> }[] = [
     {
       name: 'BasicAuth+RestRoute',
       url: `${WP_URL}/?rest_route=/wc/v3/orders`,
