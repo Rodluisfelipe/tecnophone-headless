@@ -104,7 +104,8 @@ export async function POST(request: NextRequest) {
       }
 
       const orderRes = await fetch(
-        `${WP_URL}/?rest_route=/wc/v3/orders/${body.order_id}&consumer_key=${CK}&consumer_secret=${CS}`
+        `${WP_URL}/?rest_route=/wc/v3/orders/${body.order_id}&consumer_key=${CK}&consumer_secret=${CS}`,
+        { headers: { 'Authorization': 'Basic ' + Buffer.from(`${CK}:${CS}`).toString('base64') } }
       );
 
       if (!orderRes.ok) {
@@ -186,7 +187,10 @@ async function updateWCOrderStatus(
       `${WP_URL}/?rest_route=/wc/v3/orders/${orderId}&consumer_key=${CK}&consumer_secret=${CS}`,
       {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Basic ' + Buffer.from(`${CK}:${CS}`).toString('base64'),
+        },
         body: JSON.stringify({
           status,
           set_paid: status === 'processing',
