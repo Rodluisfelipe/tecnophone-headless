@@ -33,7 +33,10 @@ export async function GET(request: NextRequest) {
           style={{
             display: 'flex',
             position: 'absolute',
-            inset: '0',
+            top: '0',
+            right: '0',
+            bottom: '0',
+            left: '0',
             background:
               'radial-gradient(circle at 20% 80%, rgba(59,130,246,0.25) 0%, transparent 50%)',
           }}
@@ -57,7 +60,7 @@ export async function GET(request: NextRequest) {
             overflow: 'hidden',
           }}
         >
-          {discount > 0 && (
+          {discount > 0 ? (
             <div
               style={{
                 display: 'flex',
@@ -70,12 +73,11 @@ export async function GET(request: NextRequest) {
                 padding: '8px 16px',
                 fontSize: '22px',
                 fontWeight: '900',
-                zIndex: 10,
               }}
             >
               -{discount}%
             </div>
-          )}
+          ) : null}
           {imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -180,191 +182,6 @@ export async function GET(request: NextRequest) {
               ))}
             </div>
             <div style={{ display: 'flex', fontSize: '14px', color: 'rgba(255,255,255,0.55)', marginTop: '4px' }}>
-              www.tecnophone.co
-            </div>
-          </div>
-        </div>
-      </div>
-    ),
-    { width: 1200, height: 630 }
-  );
-}
-
-    (
-      <div
-        style={{
-          display: 'flex',
-          width: '1200px',
-          height: '630px',
-          background: 'linear-gradient(135deg, #172554 0%, #1e40af 45%, #2563eb 100%)',
-          padding: '48px',
-          fontFamily: 'system-ui, sans-serif',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Subtle grid pattern overlay */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage:
-              'radial-gradient(circle at 20% 80%, rgba(59,130,246,0.25) 0%, transparent 50%), radial-gradient(circle at 80% 10%, rgba(139,92,246,0.15) 0%, transparent 50%)',
-          }}
-        />
-
-        {/* Left: product image card */}
-        <div
-          style={{
-            display: 'flex',
-            width: '480px',
-            height: '534px',
-            background: 'white',
-            borderRadius: '28px',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginRight: '52px',
-            flexShrink: 0,
-            boxShadow: '0 32px 80px rgba(0,0,0,0.35)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          {discount > 0 && (
-            <div
-              style={{
-                position: 'absolute',
-                top: '20px',
-                left: '20px',
-                background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-                color: 'white',
-                borderRadius: '12px',
-                padding: '8px 16px',
-                fontSize: '22px',
-                fontWeight: '900',
-                zIndex: 10,
-              }}
-            >
-              -{discount}%
-            </div>
-          )}
-          {imageUrl ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              src={imageUrl}
-              alt={name}
-              style={{
-                maxWidth: '400px',
-                maxHeight: '460px',
-                objectFit: 'contain',
-              }}
-            />
-          ) : (
-            <div style={{ fontSize: '80px' }}>📱</div>
-          )}
-        </div>
-
-        {/* Right: info */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            flex: 1,
-            color: 'white',
-            position: 'relative',
-          }}
-        >
-          {/* Logo row */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '28px' }}>
-            <div
-              style={{
-                background: 'white',
-                borderRadius: '12px',
-                padding: '8px 18px',
-                fontSize: '22px',
-                fontWeight: '900',
-                color: '#1d4ed8',
-                letterSpacing: '-0.5px',
-              }}
-            >
-              TecnoPhone
-            </div>
-            {category && (
-              <div
-                style={{
-                  background: 'rgba(255,255,255,0.18)',
-                  borderRadius: '8px',
-                  padding: '6px 14px',
-                  fontSize: '15px',
-                  color: 'rgba(255,255,255,0.85)',
-                  border: '1px solid rgba(255,255,255,0.2)',
-                }}
-              >
-                {category}
-              </div>
-            )}
-          </div>
-
-          {/* Product name */}
-          <div
-            style={{
-              fontSize: name.length > 65 ? '26px' : name.length > 45 ? '30px' : '34px',
-              fontWeight: '800',
-              lineHeight: 1.25,
-              marginBottom: '28px',
-              flex: 1,
-              display: 'flex',
-              alignItems: 'flex-start',
-            }}
-          >
-            {name.length > 90 ? name.slice(0, 88) + '…' : name}
-          </div>
-
-          {/* Price */}
-          {price && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
-              <div style={{ fontSize: '52px', fontWeight: '900', letterSpacing: '-1px' }}>
-                {price}
-              </div>
-            </div>
-          )}
-
-          {/* Footer badges */}
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '10px',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                gap: '10px',
-              }}
-            >
-              {(['🚚 Envío gratis', '🔒 Pago seguro', '✅ Garantía 1 año'] as string[]).map((t) => (
-                <div
-                  key={t}
-                  style={{
-                    background: 'rgba(255,255,255,0.15)',
-                    borderRadius: '10px',
-                    padding: '10px 14px',
-                    fontSize: '14px',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                  }}
-                >
-                  {t}
-                </div>
-              ))}
-            </div>
-            <div
-              style={{
-                fontSize: '14px',
-                color: 'rgba(255,255,255,0.55)',
-                marginTop: '4px',
-              }}
-            >
               www.tecnophone.co
             </div>
           </div>

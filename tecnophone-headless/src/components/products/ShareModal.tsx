@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { toPng } from 'html-to-image';
 import Image from 'next/image';
 import QRCode from 'qrcode';
 import {
@@ -39,6 +40,7 @@ export default function ShareModal({
   const [downloading, setDownloading] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState('');
   const overlayRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   // Build OG image URL (relative — same origin)
   const ogParams = new URLSearchParams({
@@ -77,18 +79,18 @@ export default function ShareModal({
   };
 
   const handleDownload = async () => {
+    if (!cardRef.current) return;
     setDownloading(true);
     try {
-      const res = await fetch(ogUrl);
-      const blob = await res.blob();
-      const blobUrl = URL.createObjectURL(blob);
+      const dataUrl = await toPng(cardRef.current, { pixelRatio: 3, cacheBust: true });
       const a = document.createElement('a');
-      a.href = blobUrl;
+      a.href = dataUrl;
       a.download = `tecnophone-${productName.slice(0, 40).replace(/\s+/g, '-').toLowerCase()}.png`;
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(blobUrl);
+      document.body.removeChild(a);
     } catch {
-      // silently ignore download errors
+      // silently ignore
     } finally {
       setDownloading(false);
     }
@@ -144,7 +146,7 @@ export default function ShareModal({
 
         <div className="px-5 py-5 space-y-5">
           {/* ===== SHARE CARD PREVIEW ===== */}
-          <div className="rounded-2xl overflow-hidden border border-surface-200 shadow-sm">
+          <div ref={cardRef} className="rounded-2xl overflow-hidden border border-surface-200 shadow-sm">
             <div className="bg-gradient-to-br from-[#172554] to-[#2563eb] p-4 flex items-center gap-4">
               {/* Product image */}
               <div className="relative w-20 h-20 bg-white rounded-xl overflow-hidden flex-shrink-0 shadow-lg">
