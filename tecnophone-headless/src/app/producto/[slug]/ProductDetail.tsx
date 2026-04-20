@@ -658,16 +658,16 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
                           )}>{formatPrice(sparkline.firstPrice)}</p>
                         </div>
                         <p className={cn(
-                          'text-xs text-center leading-tight max-w-[140px]',
-                          sparkline.trend === 'down' ? 'text-emerald-600 font-bold' :
-                          sparkline.trend === 'up' ? 'text-orange-500 font-bold' :
-                          'text-surface-500'
+                          'text-xs text-center leading-tight max-w-[140px] font-bold',
+                          sparkline.trend === 'down' ? 'text-emerald-600' :
+                          sparkline.trend === 'up' ? 'text-orange-500' :
+                          'text-primary-600'
                         )}>
                           {sparkline.trend === 'down'
-                            ? '✓ Mejor momento para comprar'
+                            ? '🔥 ¡Precio bajó! Llévalo ahora'
                             : sparkline.trend === 'up'
-                            ? '⚠ El precio sigue subiendo'
-                            : 'Precio estable'}
+                            ? '⚡ ¡Apresúrate antes de que suba más!'
+                            : '✅ Precio estable, ¡asegúralo hoy!'}
                         </p>
                         <div className="text-right">
                           <p className="text-[10px] text-surface-400 leading-none">Hoy</p>
@@ -1203,7 +1203,7 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
         productName={product.name}
         productPrice={formatPrice(product.price)}
         productImage={product.images[0]?.src || ''}
-        productUrl={typeof window !== 'undefined' ? window.location.href : `https://tecnophone.co/producto/${product.slug}`}
+        productUrl={`https://tecnophone.co/producto/${product.slug}`}
         discount={discount}
         category={displayCategory?.name || ''}
       />
