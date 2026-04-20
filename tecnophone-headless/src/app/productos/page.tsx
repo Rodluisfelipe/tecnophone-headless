@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export default async function ProductosPage() {
   // Server-side initial data fetch for SEO and performance
-  const initialData = await getProducts({ page: 1, per_page: 12, orderby: 'date', order: 'desc' });
+  const initialData = await getProducts({ page: 1, per_page: 24, orderby: 'date', order: 'desc' });
 
   return (
     <Suspense

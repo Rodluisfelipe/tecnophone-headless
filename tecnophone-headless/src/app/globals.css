@@ -14,6 +14,7 @@
   html {
     -webkit-tap-highlight-color: transparent;
     -webkit-text-size-adjust: 100%;
+    overflow-x: hidden;
   }
 
   @media (max-width: 1023px) {
@@ -25,6 +26,7 @@
   body {
     @apply font-sans text-surface-800 antialiased bg-white;
     overscroll-behavior-y: none;
+    overflow-x: hidden;
     padding-bottom: var(--bottom-nav-h);
   }
 
@@ -447,3 +449,75 @@
     animation: none !important;
   }
 }
+
+/* ===== PRODUCT DESCRIPTION — WooCommerce raw HTML safety ===== */
+/* @tailwindcss/typography not installed — constrain all raw WC content here */
+.product-description {
+  overflow-x: hidden;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: #4b5563;
+}
+.product-description h1,
+.product-description h2,
+.product-description h3,
+.product-description h4 {
+  font-weight: 700;
+  color: #111827;
+  margin-top: 1.25em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+.product-description h1 { font-size: 1.375rem; }
+.product-description h2 { font-size: 1.125rem; }
+.product-description h3 { font-size: 1rem; }
+.product-description h4 { font-size: 0.875rem; }
+.product-description p  { margin-bottom: 0.875em; }
+.product-description ul,
+.product-description ol { padding-left: 1.25em; margin-bottom: 0.875em; }
+.product-description li { margin-bottom: 0.25em; }
+.product-description a  { color: #2563eb; text-decoration: underline; }
+.product-description strong { font-weight: 700; color: #111827; }
+.product-description em { font-style: italic; }
+/* Prevent wide media from overflowing */
+.product-description img,
+.product-description video,
+.product-description iframe,
+.product-description embed,
+.product-description object {
+  max-width: 100% !important;
+  height: auto !important;
+  border-radius: 0.75rem;
+}
+/* Tables: scroll horizontally instead of overflowing */
+.product-description table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin-bottom: 1em;
+  -webkit-overflow-scrolling: touch;
+}
+.product-description td,
+.product-description th {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e5e7eb;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+.product-description th { background-color: #f3f4f6; font-weight: 600; color: #111827; }
+.product-description tr:nth-child(even) td { background-color: #f9fafb; }
+/* Code / pre */
+.product-description pre {
+  overflow-x: auto;
+  max-width: 100%;
+  background-color: #f3f4f6;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+

@@ -58,7 +58,7 @@ export default function BottomNav() {
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
         aria-label="Navegación principal móvil"
       >
-        <div className="flex items-end justify-around h-16 max-w-lg mx-auto px-2">
+        <div className="flex items-end justify-around h-16 max-w-lg mx-auto px-4">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const active = isActive(tab.key);

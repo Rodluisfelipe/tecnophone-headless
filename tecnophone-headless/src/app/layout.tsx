@@ -4,23 +4,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import dynamic from 'next/dynamic';
 import './globals.css';
 import Footer from '@/components/layout/Footer';
-
-const Navbar = dynamic(() => import('@/components/layout/Navbar'), {
-  loading: () => (
-    <header className="sticky top-0 z-50">
-      <div className="bg-primary-600 text-white py-1.5 text-center">
-        <div className="container-custom">
-          <div className="text-xs sm:text-sm font-semibold h-5" />
-        </div>
-      </div>
-      <nav className="border-b border-surface-200 bg-white/80 backdrop-blur-md">
-        <div className="container-custom">
-          <div className="h-16 lg:h-[68px]" />
-        </div>
-      </nav>
-    </header>
-  ),
-});
+import Navbar from '@/components/layout/Navbar';
 const CartDrawer = dynamic(() => import('@/components/layout/CartDrawer'), { ssr: false });
 
 const ToasterProvider = dynamic(() => import('@/components/layout/ToasterProvider'), { ssr: false });
@@ -29,7 +13,10 @@ const AiChatBubble = dynamic(() => import('@/components/chat/AiChatBubble'), {
   ssr: false,
   loading: () => null,
 });
-import WhatsAppButton from '@/components/layout/WhatsAppButton';
+const WhatsAppButton = dynamic(() => import('@/components/layout/WhatsAppButton'), {
+  ssr: false,
+  loading: () => null,
+});
 
 const inter = Inter({
   subsets: ['latin'],

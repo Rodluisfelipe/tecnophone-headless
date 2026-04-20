@@ -165,26 +165,51 @@ export default function ProductCatalog({
 
     setLoading(true);
 
-    // Always use Algolia for filtering — it has price_numeric, brand_name, and all attr_*
-    const params = new URLSearchParams();
-    params.set('page', String(Math.max(0, page - 1)));
-    params.set('per_page', '24');
-    if (onSale) params.set('on_sale', 'true');
-    if (minPrice) params.set('min_price', minPrice);
-    if (maxPrice) params.set('max_price', maxPrice);
-    if (activeBrand) params.set('brand', activeBrand);
-    for (const [key, value] of Object.entries(activeAttrs)) {
-      params.set(key, value);
-    }
-    try {
-      const res = await fetch(`/api/products/browse?${params.toString()}`);
-      const data = await res.json();
-      setProducts((data.products || []).map(mapAlgoliaHitToProduct));
-      setTotalPages(data.totalPages || 0);
-      setTotal(data.total || 0);
-      if (data.facets) setFacets(data.facets);
-    } catch {
-      setProducts([]);
+    if (hasAnyFilter) {
+      // Filters active → use Algolia (has price_numeric, brand_name, attr_*)
+      const params = new URLSearchParams();
+      params.set('page', String(Math.max(0, page - 1)));
+      params.set('per_page', '24');
+      if (onSale) params.set('on_sale', 'true');
+      if (minPrice) params.set('min_price', minPrice);
+      if (maxPrice) params.set('max_price', maxPrice);
+      if (activeBrand) params.set('brand', activeBrand);
+      for (const [key, value] of Object.entries(activeAttrs)) {
+        params.set(key, value);
+      }
+      try {
+        const res = await fetch(`/api/products/browse?${params.toString()}`);
+        const data = await res.json();
+        setProducts((data.products || []).map(mapAlgoliaHitToProduct));
+        setTotalPages(data.totalPages || 0);
+        setTotal(data.total || 0);
+        if (data.facets) setFacets(data.facets);
+      } catch {
+        setProducts([]);
+      }
+    } else {
+      // No filters, just pagination/sort → use WooCommerce API (GraphQL, full catalog)
+      const [sortField, sortDir] = sort.split('-');
+      const params = new URLSearchParams();
+      params.set('page', String(page));
+      params.set('per_page', '24');
+      params.set('orderby', sortField);
+      params.set('order', sortDir);
+      try {
+        const res = await fetch(`/api/products?${params.toString()}`);
+        const data = await res.json();
+        setProducts(data.products || []);
+        setTotalPages(data.totalPages || 0);
+        setTotal(data.total || 0);
+      } catch {
+        setProducts([]);
+      }
+      // Also refresh facets from Algolia in background
+      try {
+        const res = await fetch('/api/products/browse?per_page=0');
+        const data = await res.json();
+        if (data.facets) setFacets(data.facets);
+      } catch { /* non-critical */ }
     }
 
     setLoading(false);

@@ -103,9 +103,14 @@ export async function getProducts(params: {
   max_price?: number;
 } = {}): Promise<{ products: WCProduct[]; totalPages: number; total: number }> {
   const perPage = params.per_page || 12;
+  const page = params.page || 1;
+
+  // For page > 1 we must fetch all items up to the requested page
+  // because WPGraphQL uses cursor-based pagination.
+  const fetchCount = page * perPage;
 
   const variables: Record<string, unknown> = {
-    first: perPage,
+    first: fetchCount,
     orderby: mapOrderby(params.orderby, params.order),
   };
 
@@ -145,13 +150,19 @@ export async function getProducts(params: {
   if (cached) return cached;
 
   const data = await graphqlFetch<GQLProductsResponse>(PRODUCTS_LIST_QUERY, variables, 900);
-  const products = data.products.nodes.map(mapGraphQLProduct);
+  const allProducts = data.products.nodes.map(mapGraphQLProduct);
+
+  // Slice to the requested page
+  const offset = (page - 1) * perPage;
+  const products = allProducts.slice(offset, offset + perPage);
 
   // Enrich with brand data
   await enrichProductsWithBrands(products);
 
+  // Total estimation: if we fetched `fetchCount` items and there are more,
+  // total is at least fetchCount + 1. Otherwise total is allProducts.length.
   const hasMore = data.products.pageInfo.hasNextPage;
-  const total = hasMore ? products.length + perPage : products.length;
+  const total = hasMore ? allProducts.length + perPage : allProducts.length;
   const totalPages = Math.max(1, Math.ceil(total / perPage));
 
   const result = { products, totalPages, total };

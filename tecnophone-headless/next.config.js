@@ -24,7 +24,7 @@ const nextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   experimental: {
-    optimizePackageImports: ['lucide-react', 'algoliasearch', 'zustand'],
+    optimizePackageImports: ['lucide-react', 'algoliasearch'],
   },
   async headers() {
     return [

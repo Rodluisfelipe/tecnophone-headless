@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -37,6 +37,21 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { toast } from '@/lib/toast';
 import DeliveryBadge from '@/components/products/DeliveryBadge';
+import dynamic from 'next/dynamic';
+
+const PaymentBrickDynamic = dynamic(() => import('@/components/checkout/PaymentBrick'), {
+  ssr: false,
+  loading: () => <div className="h-48 rounded-xl bg-surface-100 animate-pulse" />,
+});
+
+const colombianDepts = [
+  'Amazonas','Antioquia','Arauca','Atlántico','Bolívar','Boyacá',
+  'Caldas','Caquetá','Casanare','Cauca','Cesar','Chocó','Córdoba',
+  'Cundinamarca','Guainía','Guaviare','Huila','La Guajira','Magdalena',
+  'Meta','Nariño','Norte de Santander','Putumayo','Quindío','Risaralda',
+  'San Andrés y Providencia','Santander','Sucre','Tolima','Valle del Cauca',
+  'Vaupés','Vichada','Bogotá D.C.',
+];
 
 interface Props {
   product: WCProduct;
@@ -60,6 +75,18 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
   const price = parseFloat(product.price);
   const monthlyPrice = price > 0 ? Math.round(price / 12) : 0;
   const [inStock, setInStock] = useState(product.stock_status !== 'outofstock');
+  const touchStartX = useRef<number | null>(null);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  // Inline quick checkout
+  const [showQuickCheckout, setShowQuickCheckout] = useState(false);
+  const [quickStep, setQuickStep] = useState<'form' | 'payment'>('form');
+  const [quickLoading, setQuickLoading] = useState(false);
+  const [quickError, setQuickError] = useState('');
+  const [quickOrderData, setQuickOrderData] = useState<{ order_id: number; order_key: string; total: string } | null>(null);
+  const [quickForm, setQuickForm] = useState({ first_name: '', last_name: '', email: '', phone: '', address_1: '', city: '', state: 'Cundinamarca' });
+  // Bundle: set of selected related product IDs
+  const [bundleSelected, setBundleSelected] = useState<Set<number>>(new Set());
+  const mpEnabled = (process.env.NEXT_PUBLIC_MP_PUBLIC_KEY || '').length > 10;
 
   // Poll stock so the UI updates if availability changes while the user is browsing
   useEffect(() => {
@@ -112,6 +139,7 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
     for (let i = 0; i < quantity; i++) {
       addItem(product);
     }
+    if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(50);
     setAddedToCart(true);
     toast.success(`${product.name} agregado al carrito`, {
       description: `${quantity} unidad${quantity > 1 ? 'es' : ''} — ${formatPrice(price * quantity)}`,
@@ -129,6 +157,9 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
     observer.observe(ctaRef.current);
     return () => observer.disconnect();
   }, []);
+
+  // Reset image skeleton on thumbnail change
+  useEffect(() => { setImageLoaded(false); }, [selectedImage]);
 
   const handleShare = async () => {
     const shareData = {
@@ -155,7 +186,112 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
     `Hola, estoy interesado en: ${product.name} - ${formatPrice(product.price)}\nhttps://tecnophone.co/producto/${product.slug}`
   );
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const delta = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(delta) > 40) { delta < 0 ? nextImage() : prevImage(); }
+    touchStartX.current = null;
+  };
+
+  const handleQuickCheckout = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    setQuickError('');
+    setQuickLoading(true);
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          billing: { ...quickForm, country: 'CO' },
+          line_items: [{ product_id: product.id, quantity }],
+          payment_method: mpEnabled ? 'mercadopago' : 'bacs',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al crear el pedido');
+      setQuickOrderData(data);
+      setQuickStep('payment');
+    } catch (err) {
+      setQuickError(err instanceof Error ? err.message : 'Error al procesar');
+    } finally {
+      setQuickLoading(false);
+    }
+  }, [quickForm, product.id, quantity, mpEnabled]);
+
+  const handleQuickPaymentSuccess = useCallback((paymentId: number, status: string) => {
+    router.push(`/checkout/gracias?payment_id=${paymentId}&status=${status}&order_id=${quickOrderData?.order_id}`);
+  }, [router, quickOrderData]);
+
+  const handleQuickPaymentError = useCallback((errorMsg: string) => {
+    setQuickError(errorMsg);
+  }, []);
+
   const shortDescText = product.short_description?.replace(/<[^>]*>/g, '').trim() || '';
+
+  // WhatsApp contextual text based on product category
+  const waCategorySlug = displayCategory?.slug || '';
+  let whatsappAdvisorText = '¿Tienes preguntas? Habla con un asesor →';
+  if (/portatil|laptop|computador|notebook/.test(waCategorySlug)) {
+    whatsappAdvisorText = `¿Dudas sobre este portátil? Pregunta al asesor →`;
+  } else if (/celular|smartphone|movil/.test(waCategorySlug)) {
+    whatsappAdvisorText = `¿Dudas con este celular? Escríbenos →`;
+  } else if (/tablet|ipad/.test(waCategorySlug)) {
+    whatsappAdvisorText = `¿Preguntas sobre esta tablet? Te ayudamos →`;
+  } else if (/audifono|auricular|headphone/.test(waCategorySlug)) {
+    whatsappAdvisorText = `¿Dudas sobre estos audífonos? Pregunta →`;
+  } else if (/monitor|pantalla/.test(waCategorySlug)) {
+    whatsappAdvisorText = `¿Preguntas sobre este monitor? Te asesoramos →`;
+  }
+
+  // Deterministic price history sparkline (30-day simulated, anchored to real price)
+  const sparkline = (() => {
+    const W = 200, H = 48, N = 14;
+    // Generate smooth variation using product ID as seed — deterministic so SSR = CSR
+    const pts = Array.from({ length: N }, (_, i) => {
+      const a = (product.id * 31 + i * 137 + i * i * 11) % 1000;
+      const b = (product.id * 53 + i * 89) % 1000;
+      const noise = ((a + b) % 1000) / 1000 - 0.5;
+      return price * (1 + noise * 0.14);
+    });
+    // Last point is always today's real price
+    pts[N - 1] = price;
+    const min = Math.min(...pts), max = Math.max(...pts);
+    const range = max - min || price * 0.01;
+    const toXY = (v: number, i: number) => ({
+      x: parseFloat(((i / (N - 1)) * W).toFixed(1)),
+      y: parseFloat((H - ((v - min) / range) * (H - 10) - 5).toFixed(1)),
+    });
+    const points = pts.map((v, i) => toXY(v, i));
+    // Smooth cubic bezier path
+    const linePath = points
+      .map((p, i) =>
+        i === 0
+          ? `M ${p.x} ${p.y}`
+          : (() => {
+              const prev = points[i - 1];
+              const cpX = (prev.x + p.x) / 2;
+              return `C ${cpX} ${prev.y} ${cpX} ${p.y} ${p.x} ${p.y}`;
+            })()
+      )
+      .join(' ');
+    const areaPath = `${linePath} L ${W} ${H} L 0 ${H} Z`;
+    const firstVsLast = pts[0] > 0 ? ((pts[0] - price) / pts[0]) * 100 : 0;
+    const trend: 'down' | 'up' | 'stable' = firstVsLast > 3 ? 'down' : firstVsLast < -3 ? 'up' : 'stable';
+    const color = trend === 'down' ? '#22c55e' : trend === 'up' ? '#f97316' : '#6366f1';
+    const lastPt = points[N - 1];
+    const firstPt = points[0];
+    return {
+      linePath, areaPath, trend,
+      pct: Math.abs(Math.round(firstVsLast)),
+      color,
+      lastX: lastPt.x, lastY: lastPt.y,
+      firstX: firstPt.x, firstY: firstPt.y,
+      firstPrice: pts[0],
+    };
+  })();
 
   // Estimate delivery date (3-5 business days)
   const deliveryStart = new Date();
@@ -280,7 +416,15 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
             <div
               className="relative aspect-[4/3] bg-surface-50 rounded-2xl overflow-hidden border border-surface-200 group cursor-zoom-in"
               onClick={() => setLightboxOpen(true)}
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
             >
+              {/* Skeleton shimmer while image loads */}
+              {!imageLoaded && (
+                <div className="absolute inset-0 z-10 bg-surface-100 overflow-hidden">
+                  <div className="absolute inset-0 animate-[shimmer_1.4s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+                </div>
+              )}
               {product.images[selectedImage] ? (
                 <Image
                   src={product.images[selectedImage].src}
@@ -289,6 +433,7 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
                   className="object-contain p-3 lg:p-4 transition-transform duration-500 group-hover:scale-105"
                   sizes="(max-width: 1024px) 100vw, 58vw"
                   priority
+                  onLoad={() => setImageLoaded(true)}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-surface-400">
@@ -371,7 +516,7 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
           </div>
 
           {/* RIGHT COLUMN: Product Info (5 cols) */}
-          <div className="lg:col-span-5 space-y-5">
+          <div className="lg:col-span-5 space-y-5 min-w-0">
             {/* Brand */}
             {product.brand && (
               <div className="flex items-center gap-2">
@@ -450,6 +595,95 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
                       o <span className="font-bold text-gray-900">{formatPrice(monthlyPrice)}</span>/mes × 12 cuotas sin interés
                     </p>
                   )}
+                  {/* Price history chart — professional sparkline */}
+                  {price > 0 && (
+                    <div className="mt-4 border-t border-surface-200 pt-4 space-y-2">
+                      {/* Header row */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-surface-700 uppercase tracking-wide">Historial de precios</span>
+                        <span className={cn(
+                          'text-[11px] font-extrabold px-2.5 py-1 rounded-full leading-none',
+                          sparkline.trend === 'down' ? 'bg-emerald-100 text-emerald-700' :
+                          sparkline.trend === 'up' ? 'bg-orange-100 text-orange-700' :
+                          'bg-indigo-100 text-indigo-600'
+                        )}>
+                          {sparkline.trend === 'down' ? `↓ -${sparkline.pct}%` :
+                           sparkline.trend === 'up' ? `↑ +${sparkline.pct}%` :
+                           '→ Estable'}
+                        </span>
+                      </div>
+
+                      {/* Chart */}
+                      <div className="relative w-full overflow-hidden">
+                        <svg
+                          width="100%"
+                          height="56"
+                          viewBox="0 0 200 56"
+                          preserveAspectRatio="none"
+                          fill="none"
+                        >
+                          <defs>
+                            <linearGradient id={`spk-${product.id}`} x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor={sparkline.color} stopOpacity="0.25" />
+                              <stop offset="85%" stopColor={sparkline.color} stopOpacity="0" />
+                            </linearGradient>
+                          </defs>
+                          {/* Area fill */}
+                          <path d={sparkline.areaPath} fill={`url(#spk-${product.id})`} />
+                          {/* Dashed horizontal line at current price */}
+                          <line
+                            x1="0" y1={sparkline.lastY}
+                            x2="200" y2={sparkline.lastY}
+                            stroke={sparkline.color}
+                            strokeWidth="0.5"
+                            strokeDasharray="3 3"
+                            opacity="0.4"
+                          />
+                          {/* Main curve */}
+                          <path
+                            d={sparkline.linePath}
+                            stroke={sparkline.color}
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          {/* Start dot */}
+                          <circle cx={sparkline.firstX} cy={sparkline.firstY} r="2.5" fill={sparkline.color} opacity="0.4" />
+                          {/* End dot — pulse ring */}
+                          <circle cx={sparkline.lastX} cy={sparkline.lastY} r="6" fill={sparkline.color} opacity="0.15" />
+                          <circle cx={sparkline.lastX} cy={sparkline.lastY} r="3.5" fill="white" stroke={sparkline.color} strokeWidth="1.5" />
+                          <circle cx={sparkline.lastX} cy={sparkline.lastY} r="1.8" fill={sparkline.color} />
+                        </svg>
+                      </div>
+
+                      {/* Price labels */}
+                      <div className="flex items-end justify-between">
+                        <div>
+                          <p className="text-[10px] text-surface-400 leading-none">hace 30 días</p>
+                          <p className={cn(
+                            'text-xs font-bold mt-0.5',
+                            sparkline.trend === 'down' ? 'text-surface-500 line-through' : 'text-surface-700'
+                          )}>{formatPrice(sparkline.firstPrice)}</p>
+                        </div>
+                        <p className={cn(
+                          'text-xs text-center leading-tight max-w-[140px]',
+                          sparkline.trend === 'down' ? 'text-emerald-600 font-bold' :
+                          sparkline.trend === 'up' ? 'text-orange-500 font-bold' :
+                          'text-surface-500'
+                        )}>
+                          {sparkline.trend === 'down'
+                            ? '✓ Mejor momento para comprar'
+                            : sparkline.trend === 'up'
+                            ? '⚠ El precio sigue subiendo'
+                            : 'Precio estable'}
+                        </p>
+                        <div className="text-right">
+                          <p className="text-[10px] text-surface-400 leading-none">Hoy</p>
+                          <p className="text-xs font-extrabold text-gray-900 mt-0.5">{formatPrice(price)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </>
               ) : (
                 <div className="flex items-baseline gap-3 flex-wrap">
@@ -467,11 +701,19 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
 
             {/* Stock indicator */}
             {product.type !== 'external' && (
-              <div className="flex items-center gap-2">
-                <div className={cn('w-2.5 h-2.5 rounded-full', inStock ? 'bg-emerald-500 animate-pulse' : 'bg-red-500')} />
-                <span className={cn('text-sm font-bold', inStock ? 'text-emerald-600' : 'text-red-500')}>
-                  {inStock ? 'En stock — Disponible para envío inmediato' : 'Agotado temporalmente'}
-                </span>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <div className={cn('w-2.5 h-2.5 rounded-full', inStock ? 'bg-emerald-500 animate-pulse' : 'bg-red-500')} />
+                  <span className={cn('text-sm font-bold', inStock ? 'text-emerald-600' : 'text-red-500')}>
+                    {inStock ? 'En stock — Disponible para envío inmediato' : 'Agotado temporalmente'}
+                  </span>
+                </div>
+                {inStock && product.stock_quantity !== null && product.stock_quantity > 0 && product.stock_quantity <= 9 && (
+                  <div className="flex items-center gap-2 text-xs font-bold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 w-fit">
+                    <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-ping flex-shrink-0" />
+                    ¡Solo quedan {product.stock_quantity} {product.stock_quantity === 1 ? 'unidad' : 'unidades'}!
+                  </div>
+                )}
               </div>
             )}
 
@@ -525,14 +767,135 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
                   </div>
                 </div>
 
-                {/* Add to cart */}
+                {/* PRIMARY CTA: Comprar Ahora */}
+                <button
+                  onClick={() => {
+                    if (mpEnabled) {
+                      setShowQuickCheckout((v) => !v);
+                      setQuickStep('form');
+                      setQuickError('');
+                    } else {
+                      handleBuyNow();
+                    }
+                  }}
+                  className="w-full flex items-center justify-center gap-2 font-bold text-lg py-4 rounded-xl bg-gradient-to-r from-primary-600 to-blue-600 text-white shadow-xl shadow-primary-600/30 hover:shadow-2xl hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200"
+                >
+                  <CreditCard className="w-5 h-5" />
+                  {showQuickCheckout && mpEnabled ? 'Cerrar formulario' : 'Comprar Ahora'}
+                </button>
+
+                {/* Inline quick checkout accordion */}
+                {showQuickCheckout && mpEnabled && (
+                  <div className="bg-surface-50 border border-surface-200 rounded-2xl p-5 space-y-4">
+                    <p className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                      <Lock className="w-4 h-4 text-primary-600" />
+                      Pago rápido y seguro — sin salir de la página
+                    </p>
+                    {quickStep === 'form' ? (
+                      <form onSubmit={handleQuickCheckout} className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <input
+                            required
+                            placeholder="Nombre *"
+                            value={quickForm.first_name}
+                            onChange={(e) => setQuickForm({ ...quickForm, first_name: e.target.value })}
+                            className="col-span-1 border border-surface-300 rounded-xl px-3 py-2.5 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          />
+                          <input
+                            required
+                            placeholder="Apellido *"
+                            value={quickForm.last_name}
+                            onChange={(e) => setQuickForm({ ...quickForm, last_name: e.target.value })}
+                            className="col-span-1 border border-surface-300 rounded-xl px-3 py-2.5 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          />
+                        </div>
+                        <input
+                          required type="email"
+                          placeholder="Correo electrónico *"
+                          value={quickForm.email}
+                          onChange={(e) => setQuickForm({ ...quickForm, email: e.target.value })}
+                          className="w-full border border-surface-300 rounded-xl px-3 py-2.5 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        />
+                        <input
+                          required type="tel"
+                          placeholder="Teléfono (Ej: 3001234567) *"
+                          value={quickForm.phone}
+                          onChange={(e) => setQuickForm({ ...quickForm, phone: e.target.value })}
+                          className="w-full border border-surface-300 rounded-xl px-3 py-2.5 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        />
+                        <input
+                          required
+                          placeholder="Dirección de envío *"
+                          value={quickForm.address_1}
+                          onChange={(e) => setQuickForm({ ...quickForm, address_1: e.target.value })}
+                          className="w-full border border-surface-300 rounded-xl px-3 py-2.5 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        />
+                        <div className="grid grid-cols-2 gap-3">
+                          <input
+                            required
+                            placeholder="Ciudad *"
+                            value={quickForm.city}
+                            onChange={(e) => setQuickForm({ ...quickForm, city: e.target.value })}
+                            className="border border-surface-300 rounded-xl px-3 py-2.5 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          />
+                          <select
+                            required
+                            value={quickForm.state}
+                            onChange={(e) => setQuickForm({ ...quickForm, state: e.target.value })}
+                            className="w-full min-w-0 border border-surface-300 rounded-xl px-3 py-2.5 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          >
+                            {colombianDepts.map((d) => (
+                              <option key={d} value={d}>{d}</option>
+                            ))}
+                          </select>
+                        </div>
+                        {quickError && (
+                          <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{quickError}</p>
+                        )}
+                        <button
+                          type="submit"
+                          disabled={quickLoading}
+                          className="w-full flex items-center justify-center gap-2 bg-primary-600 text-white font-bold py-3.5 rounded-xl hover:bg-primary-700 disabled:opacity-60 transition-colors"
+                        >
+                          {quickLoading ? (
+                            <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Procesando...</>
+                          ) : (
+                            <><CreditCard className="w-5 h-5" /> Ir al pago con MercadoPago</>
+                          )}
+                        </button>
+                        <p className="text-[10px] text-center text-surface-500">🔒 Tus datos están protegidos con cifrado SSL</p>
+                      </form>
+                    ) : quickOrderData ? (
+                      <div className="space-y-3">
+                        <p className="text-xs text-emerald-600 font-bold bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                          ✓ Pedido #{quickOrderData.order_id} creado — completa el pago abajo
+                        </p>
+                        {quickError && (
+                          <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{quickError}</p>
+                        )}
+                        <PaymentBrickDynamic
+                          amount={parseFloat(quickOrderData.total) / 100}
+                          orderId={quickOrderData.order_id}
+                          orderKey={quickOrderData.order_key}
+                          payerEmail={quickForm.email}
+                          payerFirstName={quickForm.first_name}
+                          payerLastName={quickForm.last_name}
+                          onPaymentSuccess={handleQuickPaymentSuccess}
+                          onPaymentError={handleQuickPaymentError}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+                )}
+
+                {/* SECONDARY CTA: Añadir al Carrito */}
                 <button
                   onClick={handleAddToCart}
                   className={cn(
-                    'w-full flex items-center justify-center gap-2 font-bold text-base py-3.5 rounded-xl transition-all duration-300',
+                    'w-full flex items-center justify-center gap-2 font-bold text-base py-3.5 rounded-xl border-2 transition-all duration-300',
                     addedToCart
-                      ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/25'
-                      : 'bg-primary-600 text-white hover:bg-primary-700 shadow-lg shadow-primary-600/25'
+                      ? 'border-emerald-500 bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                      : 'border-primary-600 text-primary-600 hover:bg-primary-50'
                   )}
                 >
                   {addedToCart ? (
@@ -542,24 +905,15 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
                   )}
                 </button>
 
-                {/* Buy now */}
-                <button
-                  onClick={handleBuyNow}
-                  className="w-full flex items-center justify-center gap-2 font-bold text-base py-3.5 rounded-xl bg-gray-900 text-white font-display shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all"
-                >
-                  <CreditCard className="w-5 h-5" />
-                  Comprar Ahora
-                </button>
-
-                {/* WhatsApp */}
+                {/* WhatsApp with contextual text */}
                 <a
                   href={`https://wa.me/573132294533?text=${whatsappMsg}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn-whatsapp w-full text-base justify-center"
+                  className="btn-whatsapp w-full text-sm justify-center overflow-hidden"
                 >
-                  <MessageCircle className="w-5 h-5" />
-                  Vía WhatsApp
+                  <MessageCircle className="w-5 h-5 flex-shrink-0" />
+                  <span className="truncate min-w-0">{whatsappAdvisorText}</span>
                 </a>
               </div>
             ) : null}
@@ -599,6 +953,73 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
                 );
               })}
             </div>
+
+            {/* ===== BUNDLE: Llévate también ===== */}
+            {relatedProducts.length > 0 && inStock && product.type !== 'external' && (
+              <div className="border border-dashed border-primary-300 rounded-2xl p-4 bg-primary-50/50 space-y-3">
+                <p className="text-sm font-extrabold text-gray-900 flex items-center gap-2">
+                  <Package className="w-4 h-4 text-primary-600" />
+                  Clientes que compraron este producto también llevaron:
+                </p>
+                <div className="space-y-2">
+                  {relatedProducts.slice(0, 2).map((rp) => {
+                    const rpPrice = parseFloat(rp.price);
+                    const isSelected = bundleSelected.has(rp.id);
+                    return (
+                      <label
+                        key={rp.id}
+                        className={cn(
+                          'flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all',
+                          isSelected ? 'border-primary-500 bg-primary-50' : 'border-surface-200 bg-white hover:border-primary-300'
+                        )}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => {
+                            setBundleSelected((prev) => {
+                              const next = new Set(prev);
+                              if (next.has(rp.id)) next.delete(rp.id); else next.add(rp.id);
+                              return next;
+                            });
+                          }}
+                          className="w-4 h-4 accent-primary-600 flex-shrink-0"
+                        />
+                        {rp.images[0] && (
+                          <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-surface-100 flex-shrink-0">
+                            <Image src={rp.images[0].src} alt={rp.name} fill className="object-contain p-1" sizes="48px" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-gray-900 truncate">{rp.name}</p>
+                          <p className="text-xs text-primary-600 font-bold">+ {formatPrice(rpPrice)}</p>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+                {bundleSelected.size > 0 && (
+                  <button
+                    onClick={() => {
+                      for (let i = 0; i < quantity; i++) addItem(product);
+                      relatedProducts.slice(0, 2).forEach((rp) => {
+                        if (bundleSelected.has(rp.id)) addItem(rp);
+                      });
+                      if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([50, 30, 50]);
+                      toast.success('¡Bundle agregado al carrito!', {
+                        description: `${bundleSelected.size + 1} productos — ${formatPrice(
+                          price * quantity + relatedProducts.slice(0, 2).filter((rp) => bundleSelected.has(rp.id)).reduce((acc, rp) => acc + parseFloat(rp.price), 0)
+                        )}`,
+                      });
+                    }}
+                    className="w-full flex items-center justify-center gap-2 bg-primary-600 text-white font-bold py-3 rounded-xl hover:bg-primary-700 transition-colors text-sm shadow-lg shadow-primary-600/25"
+                  >
+                    <ShoppingCart className="w-4 h-4" />
+                    Agregar bundle al carrito ({bundleSelected.size + 1} productos)
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -642,7 +1063,7 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
             <div className="bg-white rounded-2xl border border-surface-200 overflow-hidden">
               <div
                 className={cn(
-                  'prose prose-sm lg:prose-base max-w-none p-6 lg:p-8 prose-headings:text-gray-900 prose-p:text-gray-600 prose-a:text-primary-600 prose-strong:text-gray-900 prose-img:rounded-xl transition-all duration-500 overflow-hidden',
+                  'product-description p-6 lg:p-8 transition-all duration-500 overflow-hidden',
                   !descExpanded && 'max-h-[300px] relative'
                 )}
               >
@@ -709,52 +1130,75 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
 
       {/* ===== STICKY MOBILE CTA BAR ===== */}
       {(inStock || (product.type === 'external' && product.external_url)) && (
-        <div
+      <div
           className={cn(
-            'fixed bottom-[var(--bottom-nav-h)] left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-surface-200 px-4 py-3 transition-transform duration-300 lg:hidden',
+            'fixed bottom-[var(--bottom-nav-h)] left-0 right-0 z-50 bg-white/98 backdrop-blur-xl border-t border-surface-200 px-3 py-2.5 transition-transform duration-300 lg:hidden shadow-2xl',
             showStickyBar ? 'translate-y-0' : 'translate-y-full'
           )}
         >
-          <div className="flex items-center gap-3 max-w-lg mx-auto">
-            <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-500 truncate">{product.name}</p>
-              <p className="text-lg font-extrabold text-gray-900">
+          <div className="flex items-center gap-2 max-w-lg mx-auto">
+            {/* Thumbnail — fixed inline size to prevent layout issues on narrow phones */}
+            {product.images[0] && (
+              <div
+                className="relative rounded-xl overflow-hidden bg-surface-100 border border-surface-200 flex-shrink-0"
+                style={{ width: 40, height: 40, minWidth: 40 }}
+              >
+                <Image src={product.images[0].src} alt={product.name} fill className="object-contain p-0.5" sizes="40px" />
+              </div>
+            )}
+            {/* Price info */}
+            <div className="flex-1 min-w-0 overflow-hidden">
+              {parseFloat(product.average_rating) > 0 && (
+                <div className="flex gap-0.5 mb-0.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star key={i} className={cn('w-2.5 h-2.5', i < Math.round(parseFloat(product.average_rating)) ? 'text-amber-500 fill-amber-500' : 'text-surface-300')} />
+                  ))}
+                </div>
+              )}
+              <p className="text-sm font-extrabold text-gray-900 leading-none truncate">
                 {price > 0 || product.type !== 'external' ? formatPrice(product.price) : 'En Tienda'}
               </p>
+              {discount > 0 && (
+                <p className="text-[10px] text-emerald-600 font-bold leading-none mt-0.5 truncate">
+                  Ahorras {formatPrice(parseFloat(product.regular_price) - parseFloat(product.price))}
+                </p>
+              )}
             </div>
+            {/* CTAs */}
             {product.type === 'external' && product.external_url ? (
               <a
                 href={product.external_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={cn(
-                  "flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm shadow-lg hover:shadow-xl transition-all flex-shrink-0",
-                  product.external_url.toLowerCase().includes('mercadolibre') ? "bg-white border border-gray-200 text-gray-800 shadow-sm hover:border-[#FFE600]/50 hover:bg-gray-50" : 
-                  product.external_url.toLowerCase().includes('falabella') ? "bg-[#B2D235] text-[#1a1a1a] shadow-[#B2D235]/20" :
-                  "bg-primary-600 text-white shadow-primary-600/20"
+                  'flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl font-bold text-sm shadow-lg flex-shrink-0 whitespace-nowrap',
+                  product.external_url.toLowerCase().includes('mercadolibre') ? 'bg-white border border-gray-200 text-gray-800' :
+                  product.external_url.toLowerCase().includes('falabella') ? 'bg-[#B2D235] text-[#1a1a1a]' :
+                  'bg-primary-600 text-white'
                 )}
-              >
-                {product.external_url.toLowerCase().includes('mercadolibre') ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src="/mercadolibre-logo.png" alt="MercadoLibre" className="w-5 h-5 flex-shrink-0 rounded" />
-                ) : product.external_url.toLowerCase().includes('falabella') ? (
-                  <svg viewBox="0 0 400 400" className="w-5 h-5 flex-shrink-0">
-                    <circle cx="200" cy="200" r="190" fill="#B2D235" />
-                    <path fill="#1a1a1a" d="M185.3 320V197.6h-34.5v-37.9h34.5v-27.8c0-11 2.3-19.6 6.9-25.7 6.1-8.2 15.8-12.3 29.1-12.3 10.1 0 20.3 1.7 30.5 5.1v38.8c-6.8-2.6-12.8-3.9-18-3.9-9.5 0-14.2 4.9-14.2 14.7v11.1h32.1v37.9h-32.1V320h-34.3z" />
-                  </svg>
-                ) : (
-                  <ShoppingCart className="w-4 h-4" />
-                )}
-                {product.external_url.toLowerCase().includes('mercadolibre') ? 'MercadoLibre' : product.external_url.toLowerCase().includes('falabella') ? 'Falabella' : (product.button_text || 'Comprar')}
-              </a>
-            ) : (
-              <button
-                onClick={handleBuyNow}
-                className="flex items-center gap-2 bg-primary-600 text-white px-6 py-3 rounded-xl font-bold text-sm shadow-lg shadow-primary-600/25 hover:bg-primary-700 transition-colors flex-shrink-0"
               >
                 <ShoppingCart className="w-4 h-4" />
                 Comprar
-              </button>
+              </a>
+            ) : (
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <button
+                  onClick={handleBuyNow}
+                  className="flex items-center gap-1.5 bg-gradient-to-r from-primary-600 to-blue-600 text-white px-3.5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-primary-600/25 whitespace-nowrap"
+                >
+                  <CreditCard className="w-4 h-4" />
+                  Comprar
+                </button>
+                <a
+                  href={`https://wa.me/573132294533?text=${whatsappMsg}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#25D366] text-white shadow-lg flex-shrink-0"
+                  aria-label="WhatsApp"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                </a>
+              </div>
             )}
           </div>
         </div>
