@@ -29,6 +29,7 @@ const AiChatBubble = dynamic(() => import('@/components/chat/AiChatBubble'), {
   ssr: false,
   loading: () => null,
 });
+import WhatsAppButton from '@/components/layout/WhatsAppButton';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -109,6 +110,7 @@ export default function RootLayout({
 
         <BottomNav />
         <AiChatBubble />
+        <WhatsAppButton />
         <ToasterProvider />
         <SpeedInsights />
       </body>
