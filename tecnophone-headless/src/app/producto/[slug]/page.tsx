@@ -24,19 +24,42 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProduct(decodeURIComponent(params.slug));
   if (!product) return { title: 'Producto no encontrado' };
 
+  const { calculateDiscount, formatPrice } = await import('@/lib/woocommerce');
+  const discount = calculateDiscount(product.regular_price, product.sale_price);
+  const price = formatPrice(product.price);
+  const displayCategory = product.categories.find(
+    (c) => !['full', 'sin-categorizar', 'uncategorized'].includes(c.slug)
+  );
+
+  const ogParams = new URLSearchParams({
+    name:     product.name,
+    price,
+    image:    product.images[0]?.src || '',
+    discount: String(discount),
+    category: displayCategory?.name || '',
+  });
+  const ogImageUrl = `https://tecnophone.co/api/og?${ogParams.toString()}`;
+  const description =
+    product.short_description.replace(/<[^>]*>/g, '').slice(0, 160) ||
+    `Compra ${product.name} al mejor precio en TecnoPhone. Envíos a todo Colombia.`;
+
   return {
     title: product.name,
-    description:
-      product.short_description.replace(/<[^>]*>/g, '').slice(0, 160) ||
-      `Compra ${product.name} al mejor precio en TecnoPhone. Envíos a todo Colombia.`,
+    description,
     alternates: {
       canonical: `/producto/${product.slug}`,
     },
     openGraph: {
       title: product.name,
-      description: product.short_description.replace(/<[^>]*>/g, '').slice(0, 160),
-      images: product.images[0] ? [{ url: product.images[0].src }] : [],
+      description,
+      images: [{ url: ogImageUrl, width: 1200, height: 630, alt: product.name }],
       url: `/producto/${product.slug}`,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: product.name,
+      description,
+      images: [ogImageUrl],
     },
   };
 }

@@ -37,6 +37,7 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { toast } from '@/lib/toast';
 import DeliveryBadge from '@/components/products/DeliveryBadge';
+import ShareModal from '@/components/products/ShareModal';
 import dynamic from 'next/dynamic';
 
 const PaymentBrickDynamic = dynamic(() => import('@/components/checkout/PaymentBrick'), {
@@ -86,6 +87,7 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
   const [quickForm, setQuickForm] = useState({ first_name: '', last_name: '', email: '', phone: '', address_1: '', city: '', state: 'Cundinamarca' });
   // Bundle: set of selected related product IDs
   const [bundleSelected, setBundleSelected] = useState<Set<number>>(new Set());
+  const [shareOpen, setShareOpen] = useState(false);
   const mpEnabled = (process.env.NEXT_PUBLIC_MP_PUBLIC_KEY || '').length > 10;
 
   // Poll stock so the UI updates if availability changes while the user is browsing
@@ -161,18 +163,8 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
   // Reset image skeleton on thumbnail change
   useEffect(() => { setImageLoaded(false); }, [selectedImage]);
 
-  const handleShare = async () => {
-    const shareData = {
-      title: product.name,
-      text: `${product.name} - ${formatPrice(product.price)}`,
-      url: window.location.href,
-    };
-    if (navigator.share) {
-      await navigator.share(shareData);
-    } else {
-      await navigator.clipboard.writeText(window.location.href);
-      toast.success('Enlace copiado al portapapeles');
-    }
+  const handleShare = () => {
+    setShareOpen(true);
   };
 
   const handleBuyNow = () => {
@@ -1203,6 +1195,18 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
           </div>
         </div>
       )}
+
+      {/* ===== SHARE MODAL ===== */}
+      <ShareModal
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        productName={product.name}
+        productPrice={formatPrice(product.price)}
+        productImage={product.images[0]?.src || ''}
+        productUrl={typeof window !== 'undefined' ? window.location.href : `https://tecnophone.co/producto/${product.slug}`}
+        discount={discount}
+        category={displayCategory?.name || ''}
+      />
 
       {/* ===== IMAGE LIGHTBOX ===== */}
       {lightboxOpen && (
