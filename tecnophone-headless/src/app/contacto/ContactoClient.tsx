@@ -33,10 +33,10 @@ export default function ContactoClient() {
   };
 
   return (
-    <div className="relative">
+    <div className="relative overflow-hidden isolate">
       {/* Decorative background */}
-      <div className="absolute inset-x-0 top-0 h-[520px] bg-gradient-to-b from-primary-50 via-white to-transparent pointer-events-none" />
-      <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-gradient-to-r from-emerald-200/30 via-primary-200/40 to-orange-200/30 blur-3xl rounded-full pointer-events-none" />
+      <div className="absolute inset-x-0 top-0 h-[520px] bg-gradient-to-b from-primary-50 via-white to-transparent pointer-events-none -z-10" />
+      <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[90vw] max-w-[700px] h-[400px] bg-gradient-to-r from-emerald-200/30 via-primary-200/40 to-orange-200/30 blur-3xl rounded-full pointer-events-none -z-10" />
 
       <div className="container-custom relative py-10 lg:py-14">
         <div className="max-w-6xl mx-auto">
