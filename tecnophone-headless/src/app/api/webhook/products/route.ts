@@ -7,7 +7,7 @@ import {
   isAlgoliaAdminConfigured,
   AlgoliaProduct,
 } from '@/lib/algolia';
-import { invalidateProductCache } from '@/lib/woocommerce';
+import { invalidateProductCache, revalidateProduct, revalidateAllProducts } from '@/lib/woocommerce';
 
 // Shared secret for webhook validation
 const WEBHOOK_SECRET = process.env.WC_WEBHOOK_SECRET || '';
@@ -189,6 +189,7 @@ export async function POST(request: NextRequest) {
     if (topic === 'product.deleted') {
       if (algoliaReady) await deleteProductFromAlgolia(productId);
       invalidateProductCache(undefined, productId);
+      revalidateProduct(undefined, productId);
       revalidateAllProductPages();
       console.log(`[Webhook] Deleted product ${productId} from Algolia`);
       return NextResponse.json({ status: 'deleted', id: productId });
@@ -200,6 +201,7 @@ export async function POST(request: NextRequest) {
     // Only index published products
     if (wcProduct.status !== 'publish') {
       if (algoliaReady) await deleteProductFromAlgolia(productId);
+      revalidateProduct(wcProduct.slug, productId);
       revalidateAllProductPages(wcProduct.slug, wcProduct.categories);
       console.log(`[Webhook] Product ${productId} not published, removed from Algolia`);
       return NextResponse.json({ status: 'removed_unpublished', id: productId });
@@ -213,6 +215,9 @@ export async function POST(request: NextRequest) {
 
     // Clear in-memory cache for this product so fresh data is served
     invalidateProductCache(wcProduct.slug, productId);
+
+    // Invalidate Vercel Data Cache (distributed across all serverless instances)
+    revalidateProduct(wcProduct.slug, productId);
 
     // Revalidate all cached pages so ISR picks up the change immediately
     revalidateAllProductPages(wcProduct.slug, wcProduct.categories);

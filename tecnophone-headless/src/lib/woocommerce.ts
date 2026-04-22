@@ -1,5 +1,6 @@
 import { WCProduct, WCCategory, WCProductVariation, WCTag, WCBrand, Banner } from '@/types/woocommerce';
 import { graphqlFetch } from '@/lib/graphql';
+import { unstable_cache, revalidateTag } from 'next/cache';
 import { PRODUCTS_QUERY, PRODUCT_BY_SLUG_QUERY, PRODUCT_BY_ID_QUERY, PRODUCTS_LIST_QUERY, ALL_PRODUCT_SLUGS_QUERY } from '@/lib/queries/products';
 import { CATEGORIES_QUERY, CATEGORY_BY_SLUG_QUERY } from '@/lib/queries/categories';
 import { POSTS_QUERY, POST_BY_SLUG_QUERY } from '@/lib/queries/posts';
@@ -66,6 +67,29 @@ export function invalidateProductCache(slug?: string, productId?: number): void 
       memCache.delete(key);
     }
   });
+}
+
+// ============ DISTRIBUTED CACHE TAGS (Vercel Data Cache) ============
+// Tags shared across all serverless instances. Use revalidateTag from
+// a Server Action or Route Handler to invalidate cluster-wide.
+export const CACHE_TAGS = {
+  products: 'wc-products',
+  product: (slug: string) => `wc-product-${slug}`,
+  productById: (id: number) => `wc-product-id-${id}`,
+  categories: 'wc-categories',
+  category: (slug: string) => `wc-category-${slug}`,
+} as const;
+
+/** Revalidate distributed cache for all products + lists. */
+export function revalidateAllProducts(): void {
+  revalidateTag(CACHE_TAGS.products);
+}
+
+/** Revalidate distributed cache for a single product (and product lists). */
+export function revalidateProduct(slug?: string, productId?: number): void {
+  if (slug) revalidateTag(CACHE_TAGS.product(slug));
+  if (productId) revalidateTag(CACHE_TAGS.productById(productId));
+  revalidateTag(CACHE_TAGS.products);
 }
 
 // ============ ORDERBY MAPPING ============
@@ -175,12 +199,19 @@ export async function getProduct(slug: string): Promise<WCProduct | null> {
   const cached = getCached<WCProduct | null>(cacheKey);
   if (cached !== null) return cached;
 
-  const data = await graphqlFetch<GQLSingleProductResponse>(PRODUCT_BY_SLUG_QUERY, { slug }, 900);
-  const product = data.product ? mapGraphQLProduct(data.product) : null;
-  if (product) {
-    await enrichProductsWithBrands([product]);
-    setCache(cacheKey, product, 600);
-  }
+  const fetcher = unstable_cache(
+    async (s: string) => {
+      const data = await graphqlFetch<GQLSingleProductResponse>(PRODUCT_BY_SLUG_QUERY, { slug: s }, 900);
+      const p = data.product ? mapGraphQLProduct(data.product) : null;
+      if (p) await enrichProductsWithBrands([p]);
+      return p;
+    },
+    [`wc-product-by-slug`],
+    { revalidate: 600, tags: [CACHE_TAGS.products, CACHE_TAGS.product(slug)] }
+  );
+
+  const product = await fetcher(slug);
+  if (product) setCache(cacheKey, product, 600);
   return product;
 }
 
@@ -189,10 +220,19 @@ export async function getProductById(id: number): Promise<WCProduct> {
   const cached = getCached<WCProduct>(cacheKey);
   if (cached) return cached;
 
-  const data = await graphqlFetch<GQLSingleProductResponse>(PRODUCT_BY_ID_QUERY, { id: String(id) }, 900);
-  if (!data.product) throw new Error(`Product ${id} not found`);
-  const product = mapGraphQLProduct(data.product);
-  await enrichProductsWithBrands([product]);
+  const fetcher = unstable_cache(
+    async (productId: number) => {
+      const data = await graphqlFetch<GQLSingleProductResponse>(PRODUCT_BY_ID_QUERY, { id: String(productId) }, 900);
+      if (!data.product) throw new Error(`Product ${productId} not found`);
+      const p = mapGraphQLProduct(data.product);
+      await enrichProductsWithBrands([p]);
+      return p;
+    },
+    [`wc-product-by-id`],
+    { revalidate: 600, tags: [CACHE_TAGS.products, CACHE_TAGS.productById(id)] }
+  );
+
+  const product = await fetcher(id);
   setCache(cacheKey, product, 600);
   return product;
 }
@@ -231,13 +271,17 @@ export async function getCategories(params: {
   const cached = getCached<WCCategory[]>(cacheKey);
   if (cached) return cached;
 
-  const variables: Record<string, unknown> = {
-    first: params.per_page || 100,
-    hideEmpty: params.hide_empty !== false,
-  };
+  const fetcher = unstable_cache(
+    async (perPage: number, hideEmpty: boolean) => {
+      const variables: Record<string, unknown> = { first: perPage, hideEmpty };
+      const data = await graphqlFetch<GQLCategoriesResponse>(CATEGORIES_QUERY, variables, 3600);
+      return data.productCategories.nodes.map(mapGraphQLCategory);
+    },
+    [`wc-categories`],
+    { revalidate: 1800, tags: [CACHE_TAGS.categories] }
+  );
 
-  const data = await graphqlFetch<GQLCategoriesResponse>(CATEGORIES_QUERY, variables, 3600);
-  let categories = data.productCategories.nodes.map(mapGraphQLCategory);
+  let categories = await fetcher(params.per_page || 100, params.hide_empty !== false);
 
   if (params.parent !== undefined) {
     categories = categories.filter((c) => c.parent === params.parent);
@@ -252,9 +296,17 @@ export async function getCategory(slug: string): Promise<WCCategory | null> {
   const cached = getCached<WCCategory | null>(cacheKey);
   if (cached !== null) return cached;
 
-  const data = await graphqlFetch<GQLCategoriesResponse>(CATEGORY_BY_SLUG_QUERY, { slug: [slug] }, 3600);
-  const cat = data.productCategories.nodes[0];
-  const category = cat ? mapGraphQLCategory(cat) : null;
+  const fetcher = unstable_cache(
+    async (s: string) => {
+      const data = await graphqlFetch<GQLCategoriesResponse>(CATEGORY_BY_SLUG_QUERY, { slug: [s] }, 3600);
+      const cat = data.productCategories.nodes[0];
+      return cat ? mapGraphQLCategory(cat) : null;
+    },
+    [`wc-category-by-slug`],
+    { revalidate: 1800, tags: [CACHE_TAGS.categories, CACHE_TAGS.category(slug)] }
+  );
+
+  const category = await fetcher(slug);
   if (category) setCache(cacheKey, category, 1800);
   return category;
 }
