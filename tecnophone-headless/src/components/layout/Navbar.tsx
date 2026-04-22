@@ -82,6 +82,7 @@ export default function Navbar() {
   }, []);
 
   const [promoIndex, setPromoIndex] = useState(0);
+  const [promoPaused, setPromoPaused] = useState(false);
 
   const promos = [
     '🔥 Envío GRATIS en compras desde $500.000',
@@ -91,17 +92,27 @@ export default function Navbar() {
   ];
 
   useEffect(() => {
+    if (promoPaused) return;
     const interval = setInterval(() => {
       setPromoIndex((i) => (i + 1) % promos.length);
     }, 4000);
     return () => clearInterval(interval);
-  }, [promos.length]);
+  }, [promos.length, promoPaused]);
 
   return (
     <>
-      <header className="sticky top-0 z-50">
-        {/* Top promo bar — rotating */}
-        <div className="bg-primary-600 text-white py-1.5 text-center overflow-hidden">
+      <header className="sticky top-0 z-50 bg-primary-600" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+        {/* Top promo bar — rotating, pauses on hover */}
+        <div
+          className="bg-primary-600 text-white py-1.5 text-center overflow-hidden"
+          onMouseEnter={() => setPromoPaused(true)}
+          onMouseLeave={() => setPromoPaused(false)}
+          onFocus={() => setPromoPaused(true)}
+          onBlur={() => setPromoPaused(false)}
+          role="region"
+          aria-label="Promociones destacadas"
+          aria-live="polite"
+        >
           <div className="container-custom">
             <div className="text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all duration-500">
               {mounted ? promos[promoIndex] : promos[0]}

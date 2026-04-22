@@ -104,7 +104,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
             <button
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open(product.external_url, '_blank', 'noopener,noreferrer'); }}
               aria-label={product.button_text || 'Comprar producto'}
-              className="flex items-center gap-2 bg-primary-600/95 backdrop-blur-sm text-white px-5 py-2.5 rounded-xl shadow-lg hover:bg-primary-700 transition-colors duration-200 border border-primary-500 text-sm font-bold"
+              className="flex items-center gap-2 bg-primary-600/95 backdrop-blur-sm text-white px-5 py-2.5 rounded-xl shadow-lg hover:bg-primary-700 transition-colors duration-200 border border-primary-500 text-sm font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-700"
             >
               <ShoppingCart className="w-4 h-4" />
               {product.button_text || 'Comprar'}
@@ -113,8 +113,9 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
             <button
               onClick={handleAddToCart}
               disabled={product.stock_status === 'outofstock'}
+              aria-disabled={product.stock_status === 'outofstock'}
               aria-label="Agregar al carrito"
-              className="flex items-center gap-2 bg-primary-600/95 backdrop-blur-sm text-white px-5 py-2.5 rounded-xl shadow-lg hover:bg-primary-700 transition-colors duration-200 disabled:opacity-40 border border-primary-500 text-sm font-bold"
+              className="flex items-center gap-2 bg-primary-600/95 backdrop-blur-sm text-white px-5 py-2.5 rounded-xl shadow-lg hover:bg-primary-700 transition-colors duration-200 disabled:opacity-40 border border-primary-500 text-sm font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-700"
             >
               <ShoppingCart className="w-4 h-4" />
               Agregar
@@ -236,8 +237,9 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
           <button
             onClick={handleAddToCart}
             disabled={product.stock_status === 'outofstock'}
+            aria-disabled={product.stock_status === 'outofstock'}
             className={cn(
-              'mt-4 w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-300',
+              'mt-4 w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
               product.stock_status === 'outofstock'
                 ? 'bg-surface-200 text-surface-600 cursor-not-allowed'
                 : justAdded

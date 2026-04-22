@@ -90,7 +90,7 @@ export default function CartDrawer() {
           </h2>
           <button
             onClick={closeCart}
-            className="p-2.5 rounded-xl hover:bg-gray-100 transition-all text-gray-400 hover:text-gray-700"
+            className="min-w-[44px] min-h-[44px] p-3 rounded-xl hover:bg-gray-100 transition-all text-gray-500 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
             aria-label="Cerrar carrito"
           >
             <X className="w-5 h-5" />

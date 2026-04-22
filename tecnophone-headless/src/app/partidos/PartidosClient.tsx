@@ -237,7 +237,7 @@ export default function PartidosClient({ fixtures, tvProducts, faqItems }: Parti
                 <div className="flex items-center justify-between gap-4 mb-6">
                   <div className="flex flex-col items-center text-center flex-1">
                     {nextMatch.teams.home.logo && (
-                      <img src={nextMatch.teams.home.logo} alt="" className="w-16 h-16 object-contain mb-2" />
+                      <img src={nextMatch.teams.home.logo} alt={`Escudo de ${nextMatch.teams.home.name}`} className="w-16 h-16 object-contain mb-2" />
                     )}
                     <span className="font-bold text-sm md:text-base">{nextMatch.teams.home.name}</span>
                   </div>
@@ -252,7 +252,7 @@ export default function PartidosClient({ fixtures, tvProducts, faqItems }: Parti
                   </div>
                   <div className="flex flex-col items-center text-center flex-1">
                     {nextMatch.teams.away.logo && (
-                      <img src={nextMatch.teams.away.logo} alt="" className="w-16 h-16 object-contain mb-2" />
+                      <img src={nextMatch.teams.away.logo} alt={`Escudo de ${nextMatch.teams.away.name}`} className="w-16 h-16 object-contain mb-2" />
                     )}
                     <span className="font-bold text-sm md:text-base">{nextMatch.teams.away.name}</span>
                   </div>

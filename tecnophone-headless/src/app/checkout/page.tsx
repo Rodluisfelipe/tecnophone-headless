@@ -284,33 +284,36 @@ export default function CheckoutPage() {
 
         <h1 className="text-2xl lg:text-3xl font-extrabold text-gray-900 mb-4">Finalizar Compra</h1>
 
-        {/* Trust bar */}
-        <div className="flex flex-wrap items-center gap-4 sm:gap-6 mb-8 p-3 bg-surface-100 rounded-xl border border-surface-200 text-xs text-surface-700">
-          <span className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5 text-emerald-600" /> Pago 100% seguro</span>
-          <span className="flex items-center gap-1.5"><Truck className="w-3.5 h-3.5 text-primary-600" /> Envío asegurado</span>
-          <span className="flex items-center gap-1.5"><Shield className="w-3.5 h-3.5 text-amber-500" /> Garantía incluida</span>
-          <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5 text-surface-600" /> No necesitas crear cuenta</span>
-        </div>
+        {/* Trust bar removed per request */}
 
-        {/* Step Indicator */}
-        <div className="flex items-center gap-3 mb-8">
-          <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-colors ${
-            step === 'info'
-              ? 'bg-primary-500 text-white'
-              : 'bg-emerald-500/10 text-emerald-600'
-          }`}>
-            {step === 'payment' ? <CheckCircle className="w-4 h-4" /> : <User className="w-4 h-4" />}
-            1. Datos
+        {/* Step Indicator with progress bar */}
+        <div className="mb-8" role="progressbar" aria-valuenow={step === 'info' ? 1 : 2} aria-valuemin={1} aria-valuemax={2} aria-label="Progreso del checkout">
+          <div className="flex items-center gap-3">
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-colors ${
+              step === 'info'
+                ? 'bg-primary-500 text-white'
+                : 'bg-emerald-500/10 text-emerald-600'
+            }`}>
+              {step === 'payment' ? <CheckCircle className="w-4 h-4" /> : <User className="w-4 h-4" />}
+              1. Datos
+            </div>
+            <div className="flex-1 h-1 rounded-full bg-surface-200 overflow-hidden">
+              <div
+                className={`h-full bg-gradient-to-r from-primary-500 to-emerald-500 transition-all duration-500 ${step === 'payment' ? 'w-full' : 'w-1/2'}`}
+              />
+            </div>
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-colors ${
+              step === 'payment'
+                ? 'bg-primary-500 text-white'
+                : 'bg-surface-100 text-surface-600'
+            }`}>
+              <CreditCard className="w-4 h-4" />
+              2. Pago
+            </div>
           </div>
-          <ChevronRight className="w-4 h-4 text-surface-500" />
-          <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-colors ${
-            step === 'payment'
-              ? 'bg-primary-500 text-white'
-              : 'bg-surface-100 text-surface-600'
-          }`}>
-            <CreditCard className="w-4 h-4" />
-            2. Pago
-          </div>
+          <p className="text-xs text-surface-600 mt-2 text-center">
+            {step === 'info' ? 'Paso 1 de 2 — Completa tus datos para continuar' : 'Paso 2 de 2 — Elige tu método de pago'}
+          </p>
         </div>
 
         <form onSubmit={handleSubmit}>

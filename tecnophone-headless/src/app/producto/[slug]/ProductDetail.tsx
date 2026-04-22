@@ -1261,12 +1261,13 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
                 <button
                   key={img.id}
                   onClick={(e) => { e.stopPropagation(); setSelectedImage(i); }}
+                  aria-label={`Ver imagen ${i + 1} de ${product.name}`}
                   className={cn(
-                    'w-14 h-14 rounded-lg overflow-hidden border-2 transition-all',
+                    'w-14 h-14 rounded-lg overflow-hidden border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
                     selectedImage === i ? 'border-primary-500' : 'border-white/20 hover:border-white/40'
                   )}
                 >
-                  <Image src={img.src} alt="" width={56} height={56} className="object-contain w-full h-full p-0.5" />
+                  <Image src={img.src} alt={`${product.name} — vista ${i + 1}`} width={56} height={56} className="object-contain w-full h-full p-0.5" />
                 </button>
               ))}
             </div>
