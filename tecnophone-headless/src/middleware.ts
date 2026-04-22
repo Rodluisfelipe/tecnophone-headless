@@ -19,6 +19,7 @@ const VALID_PREFIXES = [
   '/empresas',
   '/dolar-hoy',
   '/salario-minimo',
+  '/partidos',
   '/dia-de-la-madre',
   '/rastrear-envio',
   '/nequi-pagos',
@@ -66,11 +67,11 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // Everything else → redirect to homepage (301)
+  // Everything else → redirect to homepage (302 — temporary, not cached by browsers)
   const url = request.nextUrl.clone();
   url.pathname = '/';
   url.search = '';
-  return NextResponse.redirect(url, 301);
+  return NextResponse.redirect(url, 302);
 }
 
 export const config = {

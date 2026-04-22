@@ -183,19 +183,21 @@ export default async function HomePage() {
         <div className="px-4 sm:px-6 lg:px-8 max-w-[1550px] mx-auto">
           {/* Mobile: compact grid */}
           <div className="grid grid-cols-5 gap-1 py-3 lg:hidden">
-            {[
-              { icon: Truck, text: 'Envío nacional' },
-              { icon: CreditCard, text: 'Pago seguro' },
-              { icon: Package, text: '1-3 días' },
-            ].map((feat) => {
-              const Icon = feat.icon;
-              return (
-                <div key={feat.text} className="flex flex-col items-center gap-0.5 text-center">
-                  <Icon className="w-4 h-4 text-primary-600" />
-                  <span className="text-gray-600 text-[10px] font-semibold leading-tight">{feat.text}</span>
-                </div>
-              );
-            })}
+            <div className="flex flex-col items-center gap-0.5 text-center">
+              <Truck className="w-4 h-4 text-primary-600" />
+              <span className="text-gray-600 text-[10px] font-semibold leading-tight">Envío nacional</span>
+            </div>
+            <div className="flex flex-col items-center gap-0.5 text-center">
+              <CreditCard className="w-4 h-4 text-primary-600" />
+              <span className="text-gray-600 text-[10px] font-semibold leading-tight">Pago seguro</span>
+            </div>
+            <Link
+              href="/contacto"
+              className="flex flex-col items-center gap-0.5 text-center text-orange-600"
+            >
+              <Headphones className="w-4 h-4" />
+              <span className="text-[10px] font-bold leading-tight">Contacto</span>
+            </Link>
             <a
               href="https://wa.me/573132294533?text=Hola%2C%20quiero%20gestionar%20la%20garant%C3%ADa%20de%20mi%20producto"
               target="_blank"
@@ -214,7 +216,7 @@ export default async function HomePage() {
             </Link>
           </div>
           {/* Desktop: grid with dividers */}
-          <div className="hidden lg:grid grid-cols-4 divide-x divide-surface-200">
+          <div className="hidden lg:grid grid-cols-5 divide-x divide-surface-200">
             {[
               { icon: Truck, text: 'Envío a todo Colombia' },
               { icon: Shield, text: 'Garantía oficial' },
@@ -229,6 +231,13 @@ export default async function HomePage() {
                 </div>
               );
             })}
+            <Link
+              href="/contacto"
+              className="flex items-center justify-center gap-3 py-5 text-orange-600 hover:bg-orange-50 transition-colors group"
+            >
+              <Headphones className="w-5 h-5 flex-shrink-0 group-hover:scale-110 transition-transform" />
+              <span className="text-sm font-bold">Contáctanos</span>
+            </Link>
           </div>
         </div>
       </section>

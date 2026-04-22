@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -14,6 +14,13 @@ import {
   DollarSign,
   Briefcase,
   Clock,
+  CreditCard,
+  Wallet,
+  HelpCircle,
+  ChevronDown,
+  X,
+  Tag,
+  Sparkles,
 } from 'lucide-react';
 
 // ===== Official minimum wage data (Decreto del Gobierno Nacional — changes every Jan 1) =====
@@ -49,8 +56,11 @@ interface Product {
   on_sale: boolean;
 }
 
+interface FaqItem { q: string; a: string; }
+
 interface SalarioClientProps {
   products: Product[];
+  faqItems?: FaqItem[];
 }
 
 function formatCOP(value: number) {
@@ -68,9 +78,28 @@ function formatPrice(price: string) {
   return formatCOP(num);
 }
 
-export default function SalarioClient({ products }: SalarioClientProps) {
+export default function SalarioClient({ products, faqItems = [] }: SalarioClientProps) {
   const [userSalary, setUserSalary] = useState('');
   const [showResults, setShowResults] = useState(false);
+
+  // Installment calculator (¿Cuántas cuotas?)
+  const [productPrice, setProductPrice] = useState('');
+  const [installmentMonths, setInstallmentMonths] = useState(12);
+
+  // Budget filter (¿Te alcanza?)
+  const [budget, setBudget] = useState('');
+
+  // FAQ accordion
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  // Sticky CTA dismiss state
+  const [stickyDismissed, setStickyDismissed] = useState(false);
+  const [stickyVisible, setStickyVisible] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setStickyVisible(window.scrollY > 200);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const totalIngreso = CURRENT.salario + CURRENT.auxTransporte;
   const deduccion = Math.round(CURRENT.salario * DEDUCTION_RATE);
@@ -94,8 +123,54 @@ export default function SalarioClient({ products }: SalarioClientProps) {
   });
   const allAffordable = products.filter(p => parseFloat(p.price) <= CURRENT.salario * 2);
 
+  // ===== Cuotas products: priced 8–14 SMLV (~12 cuotas razonables) =====
+  const cuotasProducts = useMemo(
+    () => products
+      .filter(p => {
+        const price = parseFloat(p.price);
+        return price >= CURRENT.salario * 0.5 && price <= CURRENT.salario * 14;
+      })
+      .slice(0, 6),
+    [products],
+  );
+
+  // ===== Installment calculator =====
+  const productPriceNum = parseFloat(productPrice.replace(/[.,]/g, '')) || 0;
+  const monthlyPayment = productPriceNum > 0 ? Math.round(productPriceNum / installmentMonths) : 0;
+  const monthlyAsPercentSalary = productPriceNum > 0 ? (monthlyPayment / CURRENT.salario) * 100 : 0;
+
+  // ===== Cheapest installment for sticky CTA =====
+  const cheapestProduct = products[0];
+  const cheapestMonthly = cheapestProduct ? Math.round(parseFloat(cheapestProduct.price) / 12) : 0;
+
+  // ===== Budget filter =====
+  const budgetNum = parseFloat(budget.replace(/[.,]/g, '')) || 0;
+  const budgetMatches = useMemo(
+    () => budgetNum > 0
+      ? products.filter(p => parseFloat(p.price) <= budgetNum).slice(0, 8)
+      : [],
+    [budget, budgetNum, products],
+  );
+
+  // ===== Categorías por presupuesto =====
+  const categoriasPresupuesto = [
+    { label: 'Audio y accesorios', max: Math.round(CURRENT.salario * 0.3), color: 'emerald', emoji: '🎧' },
+    { label: 'Smartwatch / Tablets básicas', max: Math.round(CURRENT.salario * 0.7), color: 'blue', emoji: '⌚' },
+    { label: 'Celulares gama media', max: CURRENT.salario, color: 'indigo', emoji: '📱' },
+    { label: 'Laptops y celulares premium', max: Math.round(CURRENT.salario * 2), color: 'purple', emoji: '💻' },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-surface-50 to-white">
+      {/* === ANNOUNCEMENT BAR — visible inmediatamente === */}
+      <div className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 text-white text-xs sm:text-sm font-bold py-2 px-3 text-center">
+        <Link href="/productos" className="inline-flex items-center gap-1.5 hover:underline">
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Compra hoy con tu salario · Paga en cuotas con tu tarjeta de crédito</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
+      </div>
+
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-indigo-50" />
@@ -179,6 +254,26 @@ export default function SalarioClient({ products }: SalarioClientProps) {
                       <span className="font-extrabold text-green-600">{formatCOP(neto)}</span>
                     </div>
                   </div>
+
+                  {/* === CTA INTEGRADO: Cuotas desde tu salario === */}
+                  {cheapestProduct && (
+                    <Link
+                      href="/productos"
+                      className="block bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 rounded-xl p-3.5 text-white shadow-md hover:shadow-lg transition-all group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center shrink-0">
+                          <CreditCard className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[10px] uppercase tracking-wider font-bold opacity-90 leading-none mb-0.5">Con tu salario puedes llevar</p>
+                          <p className="text-sm font-extrabold leading-tight">Tecnología desde <span className="text-yellow-200">{formatCOP(cheapestMonthly)}/mes</span></p>
+                          <p className="text-[10px] opacity-80">Paga cómodamente con tu tarjeta de crédito</p>
+                        </div>
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform shrink-0" />
+                      </div>
+                    </Link>
+                  )}
 
                   {/* Per day/hour */}
                   <div className="grid grid-cols-2 gap-3">
@@ -436,38 +531,303 @@ export default function SalarioClient({ products }: SalarioClientProps) {
         </section>
       )}
 
-      {/* SEO content */}
-      <section className="py-10 lg:py-14 bg-surface-50 border-t border-surface-200">
+      {/* ============================================== */}
+      {/* === BANNER CUOTAS SIN INTERÉS                === */}
+      {/* ============================================== */}
+      {cuotasProducts.length > 0 && (
+        <section className="py-10 lg:py-14 bg-gradient-to-br from-emerald-50 via-white to-blue-50 border-y border-emerald-100">
+          <div className="container-custom">
+            <div className="text-center mb-8">
+              <span className="inline-flex items-center gap-2 bg-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-full mb-3">
+                <CreditCard className="w-3.5 h-3.5" />
+                12 CUOTAS SIN INTERÉS
+              </span>
+              <h2 className="text-2xl lg:text-3xl font-extrabold text-gray-900 font-display mb-2">
+                Con tu salario mínimo accede a esta tecnología
+              </h2>
+              <p className="text-surface-600 text-sm lg:text-base max-w-2xl mx-auto">
+                Paga cómodamente en cuotas mensuales con tu tarjeta de crédito · Pago seguro a través del checkout
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 lg:gap-4">
+              {cuotasProducts.map((p) => {
+                const price = parseFloat(p.price);
+                const monthly = Math.round(price / 12);
+                return (
+                  <Link
+                    key={p.slug}
+                    href={`/producto/${p.slug}`}
+                    className="group bg-white rounded-xl border border-emerald-200 hover:border-emerald-400 hover:shadow-lg overflow-hidden transition-all"
+                  >
+                    <div className="relative aspect-square bg-surface-50">
+                      {p.images?.[0]?.src && (
+                        <Image
+                          src={p.images[0].src}
+                          alt={p.name}
+                          fill
+                          className="object-contain p-2 group-hover:scale-105 transition-transform duration-500"
+                          sizes="(max-width: 768px) 50vw, 16vw"
+                        />
+                      )}
+                      <div className="absolute top-1.5 left-1.5 bg-emerald-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-md">
+                        12 CUOTAS
+                      </div>
+                    </div>
+                    <div className="p-2.5">
+                      <h4 className="text-xs font-bold text-gray-900 line-clamp-2 mb-1.5 min-h-[2rem] group-hover:text-emerald-700 transition-colors">{p.name}</h4>
+                      <div className="text-[10px] text-surface-500 line-through">{formatPrice(p.price)}</div>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-base font-extrabold text-emerald-600">{formatCOP(monthly)}</span>
+                        <span className="text-[10px] text-surface-500">/mes</span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ============================================== */}
+      {/* === CALCULADORA DE CUOTAS                    === */}
+      {/* ============================================== */}
+      <section className="py-10 lg:py-14 bg-white border-y border-surface-200">
         <div className="container-custom max-w-3xl mx-auto">
-          <h2 className="text-xl font-extrabold text-gray-900 mb-4">¿Cuánto es el salario mínimo en Colombia en {CURRENT.year}?</h2>
-          <div className="prose prose-sm text-surface-700 max-w-none space-y-3">
-            <p>
-              El salario mínimo en Colombia para {CURRENT.year} es de <strong>{formatCOP(CURRENT.salario)}</strong> pesos mensuales, 
-              según el Decreto {CURRENT.decreto} del Gobierno Nacional. Sumando el auxilio de transporte 
-              de {formatCOP(CURRENT.auxTransporte)}, el ingreso total para un trabajador que devenga el mínimo 
-              es de <strong>{formatCOP(totalIngreso)}</strong> mensuales.
-            </p>
-            <h3 className="text-lg font-bold text-gray-900 mt-6">¿Qué descuentos se aplican al salario mínimo?</h3>
-            <p>
-              Todo trabajador en Colombia debe aportar un 4% de su salario básico a salud y un 4% a pensión, 
-              para un total de 8% en descuentos. Esto significa que de un salario mínimo de {formatCOP(CURRENT.salario)}, 
-              se descuentan {formatCOP(deduccion)}, quedando un neto aproximado de <strong>{formatCOP(neto)}</strong>.
-            </p>
-            <h3 className="text-lg font-bold text-gray-900 mt-6">¿Cuándo aumenta el salario mínimo?</h3>
-            <p>
-              El salario mínimo en Colombia se negocia entre el Gobierno, los sindicatos y los empresarios durante 
-              noviembre y diciembre de cada año. Si no hay acuerdo, el Gobierno lo fija por decreto antes del 30 de diciembre. 
-              El nuevo salario entra en vigencia el 1 de enero del año siguiente.
-            </p>
-            <h3 className="text-lg font-bold text-gray-900 mt-6">¿Cómo aprovechar tu salario en tecnología?</h3>
-            <p>
-              En TecnoPhone ofrecemos equipos tecnológicos desde menos de un salario mínimo. Todos nuestros productos 
-              incluyen factura electrónica DIAN (válida para deducción de impuestos), garantía oficial del fabricante 
-              y envío a toda Colombia. Compara precios y aprovecha las ofertas disponibles.
-            </p>
+          <div className="text-center mb-6">
+            <span className="inline-flex items-center gap-2 bg-purple-50 text-purple-700 text-sm font-bold px-4 py-1.5 rounded-full mb-3">
+              <CreditCard className="w-4 h-4" />
+              Calculadora de cuotas
+            </span>
+            <h2 className="text-xl lg:text-2xl font-extrabold text-gray-900">¿Cuántas cuotas necesitas para tu próximo equipo?</h2>
+            <p className="text-sm text-surface-600 mt-2">Ingresa el precio del producto y elige el plan de cuotas.</p>
+          </div>
+
+          <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl border border-purple-200 p-5 lg:p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wide">Precio del producto</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400 font-bold">$</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="2.500.000"
+                    value={productPrice}
+                    onChange={(e) => setProductPrice(e.target.value)}
+                    className="w-full pl-8 pr-4 py-3 border border-surface-300 rounded-xl text-lg font-semibold focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none bg-white"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wide">Plan de cuotas</label>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {[3, 6, 12, 24].map((m) => (
+                    <button
+                      key={m}
+                      onClick={() => setInstallmentMonths(m)}
+                      className={`py-2.5 rounded-xl text-sm font-bold transition-all ${
+                        installmentMonths === m
+                          ? 'bg-purple-600 text-white shadow-md'
+                          : 'bg-white border border-surface-300 text-gray-700 hover:border-purple-400'
+                      }`}
+                    >
+                      {m}x
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {productPriceNum > 0 && (
+              <div className="bg-white rounded-xl p-4 border border-purple-100 space-y-3">
+                <div className="flex items-end justify-between gap-3">
+                  <div>
+                    <p className="text-xs text-surface-500 uppercase tracking-wide font-bold">Cuota mensual</p>
+                    <p className="text-3xl lg:text-4xl font-extrabold text-purple-600 leading-none">{formatCOP(monthlyPayment)}</p>
+                    <p className="text-xs text-surface-500 mt-1">por {installmentMonths} meses · sin interés</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-surface-500">Total</p>
+                    <p className="text-base font-bold text-gray-900">{formatCOP(productPriceNum)}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg p-2.5">
+                  <Wallet className="w-4 h-4 text-amber-600 shrink-0" />
+                  <p className="text-xs text-amber-800">
+                    Equivale al <strong>{monthlyAsPercentSalary.toFixed(1)}%</strong> del salario mínimo mensual
+                  </p>
+                </div>
+                <Link
+                  href="/productos"
+                  className="flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-xl transition-colors"
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  Ver productos disponibles
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </section>
+
+      {/* ============================================== */}
+      {/* === COMPARADOR ¿TE ALCANZA?                  === */}
+      {/* ============================================== */}
+      <section className="py-10 lg:py-14 bg-gradient-to-br from-blue-50 to-cyan-50">
+        <div className="container-custom max-w-4xl mx-auto">
+          <div className="text-center mb-6">
+            <span className="inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-bold px-4 py-1.5 rounded-full mb-3">
+              <Tag className="w-4 h-4" />
+              ¿Te alcanza?
+            </span>
+            <h2 className="text-xl lg:text-2xl font-extrabold text-gray-900">Dinos tu presupuesto y te decimos qué puedes llevar</h2>
+          </div>
+
+          <div className="max-w-md mx-auto mb-6">
+            <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wide">Tu presupuesto disponible</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400 font-bold">$</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="1.500.000"
+                value={budget}
+                onChange={(e) => setBudget(e.target.value)}
+                className="w-full pl-8 pr-4 py-3 border border-surface-300 rounded-xl text-lg font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+              />
+            </div>
+          </div>
+
+          {budgetNum > 0 && budgetMatches.length > 0 && (
+            <div>
+              <p className="text-center text-sm text-surface-700 mb-4">
+                <strong className="text-blue-700">{budgetMatches.length} producto{budgetMatches.length !== 1 ? 's' : ''}</strong> dentro de tu presupuesto de <strong>{formatCOP(budgetNum)}</strong>
+              </p>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {budgetMatches.map((p) => (
+                  <Link
+                    key={p.slug}
+                    href={`/producto/${p.slug}`}
+                    className="group bg-white rounded-xl border border-blue-200 hover:border-blue-400 hover:shadow-lg overflow-hidden transition-all"
+                  >
+                    <div className="relative aspect-square bg-surface-50">
+                      {p.images?.[0]?.src && (
+                        <Image src={p.images[0].src} alt={p.name} fill className="object-contain p-2 group-hover:scale-105 transition-transform" sizes="(max-width: 768px) 50vw, 25vw" />
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <h4 className="text-xs font-bold text-gray-900 line-clamp-2 mb-1.5 group-hover:text-blue-700">{p.name}</h4>
+                      <p className="text-base font-extrabold text-blue-600">{formatPrice(p.price)}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+          {budgetNum > 0 && budgetMatches.length === 0 && (
+            <p className="text-center text-sm text-surface-600">
+              No encontramos productos en ese rango. <Link href="/productos" className="text-blue-600 font-bold underline">Ver catálogo completo →</Link>
+            </p>
+          )}
+        </div>
+      </section>
+
+      {/* ============================================== */}
+      {/* === CATEGORÍAS POR PRESUPUESTO              === */}
+      {/* ============================================== */}
+      <section className="py-10 lg:py-14 bg-white border-t border-surface-200">
+        <div className="container-custom max-w-5xl mx-auto">
+          <div className="text-center mb-8">
+            <h2 className="text-xl lg:text-2xl font-extrabold text-gray-900 mb-2">Categorías populares con tu salario mínimo</h2>
+            <p className="text-sm text-surface-600">Explora qué tipo de producto se ajusta a tu presupuesto.</p>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {categoriasPresupuesto.map((cat) => (
+              <Link
+                key={cat.label}
+                href={`/productos?max=${cat.max}`}
+                className="bg-gradient-to-br from-surface-50 to-white border border-surface-200 hover:border-primary-400 hover:shadow-lg rounded-2xl p-4 text-center transition-all group"
+              >
+                <div className="text-3xl mb-2">{cat.emoji}</div>
+                <h3 className="text-sm font-extrabold text-gray-900 mb-1 group-hover:text-primary-600">{cat.label}</h3>
+                <p className="text-xs text-surface-500 mb-2">Hasta {formatCOP(cat.max)}</p>
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-primary-600">
+                  Ver opciones <ArrowRight className="w-3 h-3" />
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================== */}
+      {/* === FAQ + Schema (handled in page.tsx)      === */}
+      {/* ============================================== */}
+      {faqItems.length > 0 && (
+        <section className="py-10 lg:py-14 bg-surface-50 border-t border-surface-200">
+          <div className="container-custom max-w-3xl mx-auto">
+            <div className="text-center mb-8">
+              <span className="inline-flex items-center gap-2 bg-amber-50 text-amber-700 text-sm font-bold px-4 py-1.5 rounded-full mb-3">
+                <HelpCircle className="w-4 h-4" />
+                Preguntas frecuentes
+              </span>
+              <h2 className="text-xl lg:text-2xl font-extrabold text-gray-900">Todo sobre el salario mínimo {CURRENT.year}</h2>
+            </div>
+
+            <div className="space-y-2">
+              {faqItems.map((item, i) => (
+                <div key={i} className="bg-white rounded-xl border border-surface-200 overflow-hidden">
+                  <button
+                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                    className="w-full flex items-center justify-between gap-4 px-4 py-4 text-left hover:bg-surface-50 transition-colors"
+                    aria-expanded={openFaq === i}
+                  >
+                    <span className="text-sm lg:text-base font-bold text-gray-900">{item.q}</span>
+                    <ChevronDown className={`w-5 h-5 text-surface-400 shrink-0 transition-transform ${openFaq === i ? 'rotate-180 text-primary-600' : ''}`} />
+                  </button>
+                  {openFaq === i && (
+                    <div className="px-4 pb-4 pt-1 text-sm text-surface-700 leading-relaxed border-t border-surface-100">
+                      {item.a}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ============================================== */}
+      {/* === STICKY CTA — CUOTAS DESDE $X/MES        === */}
+      {/* ============================================== */}
+      {stickyVisible && !stickyDismissed && cheapestProduct && (
+        <div className="fixed left-3 bottom-3 lg:left-6 lg:bottom-6 z-40 max-w-xs animate-slide-up">
+          <div className="relative bg-gradient-to-br from-emerald-600 to-emerald-700 text-white rounded-2xl shadow-2xl p-4 pr-9">
+            <button
+              onClick={() => setStickyDismissed(true)}
+              className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-full hover:bg-white/20 transition-colors"
+              aria-label="Cerrar"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+            <div className="flex items-center gap-2 mb-1">
+              <Sparkles className="w-4 h-4" />
+              <span className="text-[10px] font-extrabold uppercase tracking-wider opacity-90">Cuotas sin interés</span>
+            </div>
+            <p className="text-xs opacity-90 leading-tight mb-1">Compra hoy desde</p>
+            <p className="text-2xl font-extrabold leading-none mb-2">{formatCOP(cheapestMonthly)}<span className="text-xs font-bold opacity-80">/mes</span></p>
+            <Link
+              href="/productos"
+              className="flex items-center justify-center gap-1.5 bg-white text-emerald-700 text-xs font-extrabold rounded-lg py-2 px-3 hover:bg-emerald-50 transition-colors"
+            >
+              Ver opciones <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
