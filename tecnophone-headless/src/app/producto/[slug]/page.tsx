@@ -64,6 +64,59 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+function buildProductJsonLd(product: WCProduct) {
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.tecnophone.co';
+  const url = `${SITE_URL}/producto/${product.slug}`;
+  const description =
+    product.short_description.replace(/<[^>]*>/g, '').slice(0, 5000) ||
+    product.name;
+  const availability =
+    product.stock_status === 'instock'
+      ? 'https://schema.org/InStock'
+      : 'https://schema.org/OutOfStock';
+
+  const offers: Record<string, unknown> = {
+    '@type': 'Offer',
+    url,
+    priceCurrency: 'COP',
+    price: product.price || product.regular_price,
+    availability,
+    itemCondition: 'https://schema.org/NewCondition',
+    seller: {
+      '@type': 'Organization',
+      name: 'TecnoPhone',
+      url: SITE_URL,
+    },
+  };
+
+  const jsonLd: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    description,
+    sku: product.sku || String(product.id),
+    image: product.images.map((i) => i.src).filter(Boolean),
+    url,
+    offers,
+  };
+
+  if (product.brand?.name) {
+    jsonLd.brand = { '@type': 'Brand', name: product.brand.name };
+  }
+
+  const ratingCount = Number(product.rating_count || 0);
+  const avgRating = Number(product.average_rating || 0);
+  if (ratingCount > 0 && avgRating > 0) {
+    jsonLd.aggregateRating = {
+      '@type': 'AggregateRating',
+      ratingValue: avgRating,
+      reviewCount: ratingCount,
+    };
+  }
+
+  return jsonLd;
+}
+
 export default async function ProductoPage({ params }: Props) {
   const product = await getProduct(decodeURIComponent(params.slug));
   if (!product) notFound();
@@ -79,5 +132,16 @@ export default async function ProductoPage({ params }: Props) {
     relatedProducts = result.products.filter((p) => p.id !== product.id).slice(0, 4);
   }
 
-  return <ProductDetail product={product} relatedProducts={relatedProducts} />;
+  const jsonLd = buildProductJsonLd(product);
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <ProductDetail product={product} relatedProducts={relatedProducts} />
+    </>
+  );
 }
