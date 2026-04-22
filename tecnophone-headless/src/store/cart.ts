@@ -8,6 +8,7 @@ interface CartStore {
   items: CartItem[];
   isOpen: boolean;
   lastUpdated: number;
+  freeShippingCelebration: boolean;
   toggleCart: () => void;
   openCart: () => void;
   closeCart: () => void;
@@ -17,6 +18,20 @@ interface CartStore {
   clearCart: () => void;
   totalItems: () => number;
   totalPrice: () => number;
+  dismissFreeShipping: () => void;
+}
+
+const FREE_SHIPPING_SEEN_KEY = 'tp-free-shipping-seen';
+
+function shouldCelebrateFreeShipping(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    if (sessionStorage.getItem(FREE_SHIPPING_SEEN_KEY) === '1') return false;
+    sessionStorage.setItem(FREE_SHIPPING_SEEN_KEY, '1');
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 const CART_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -27,12 +42,15 @@ export const useCartStore = create<CartStore>()(
       items: [],
       isOpen: false,
       lastUpdated: Date.now(),
+      freeShippingCelebration: false,
 
       toggleCart: () => set((state) => ({ isOpen: !state.isOpen })),
       openCart: () => set({ isOpen: true }),
       closeCart: () => set({ isOpen: false }),
+      dismissFreeShipping: () => set({ freeShippingCelebration: false }),
 
       addItem: (product, quantity = 1, variation) => {
+        const celebrate = shouldCelebrateFreeShipping();
         set((state) => {
           const existingIndex = state.items.findIndex(
             (item) =>
@@ -46,7 +64,12 @@ export const useCartStore = create<CartStore>()(
               ...newItems[existingIndex],
               quantity: newItems[existingIndex].quantity + quantity,
             };
-            return { items: newItems, isOpen: true, lastUpdated: Date.now() };
+            return {
+              items: newItems,
+              isOpen: !celebrate,
+              lastUpdated: Date.now(),
+              freeShippingCelebration: celebrate || state.freeShippingCelebration,
+            };
           }
 
           return {
@@ -54,8 +77,9 @@ export const useCartStore = create<CartStore>()(
               ...state.items,
               { product, quantity, variationId: variation?.id, variation },
             ],
-            isOpen: true,
+            isOpen: !celebrate,
             lastUpdated: Date.now(),
+            freeShippingCelebration: celebrate || state.freeShippingCelebration,
           };
         });
       },

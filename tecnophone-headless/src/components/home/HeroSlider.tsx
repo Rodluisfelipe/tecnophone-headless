@@ -262,7 +262,7 @@ export default function HeroSlider({ banners, featuredProducts = [] }: HeroSlide
       {/* ═══ MOBILE: Full-image banners only (OBANNER) ═══ */}
       {mobileSlides.length > 0 && (
         <div
-          className="lg:hidden relative w-full overflow-hidden h-[220px]"
+          className="lg:hidden relative w-full overflow-hidden h-[180px]"
           onTouchStart={handleMobileTouchStart}
           onTouchMove={handleMobileTouchMove}
           onTouchEnd={handleMobileTouchEnd}
@@ -278,7 +278,7 @@ export default function HeroSlider({ banners, featuredProducts = [] }: HeroSlide
                 background: `linear-gradient(135deg, ${slide.gradientFrom} 0%, ${slide.gradientTo} 100%)`,
               }}
             >
-              <Link href={slide.ctaLink} className="block w-full h-[220px] relative">
+              <Link href={slide.ctaLink} className="block w-full h-[180px] relative">
                 <Image
                   src={slide.productImage}
                   alt={slide.title.replace('OBANNER', '').trim() || 'Banner'}

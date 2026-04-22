@@ -649,7 +649,15 @@ export default function CheckoutPage() {
                     <span className="text-surface-700 flex items-center gap-1">
                       <Truck className="w-3.5 h-3.5" /> Envío
                     </span>
-                    <span className="text-emerald-600 font-semibold text-xs">Calculado al pagar</span>
+                    <span className="font-semibold flex items-center gap-1.5">
+                      <span className="relative text-surface-400">
+                        {formatPrice(15000)}
+                        <span className="absolute left-0 right-0 top-1/2 h-[2px] bg-surface-400 rounded-full" />
+                      </span>
+                      <span className="fs-bounce-in inline-flex items-center gap-1 rounded-md bg-emerald-100 px-2 py-0.5 text-emerald-700 text-xs font-extrabold">
+                        GRATIS
+                      </span>
+                    </span>
                   </div>
                   <div className="flex justify-between text-lg font-extrabold pt-2 border-t border-surface-200">
                     <span className="text-gray-900">Total</span>

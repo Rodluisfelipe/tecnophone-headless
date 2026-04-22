@@ -15,14 +15,11 @@ interface ProductCardHorizontalProps {
   index?: number;
 }
 
-const FREE_SHIPPING_THRESHOLD = 500000;
-
 export default function ProductCardHorizontal({ product, index = 0 }: ProductCardHorizontalProps) {
   const addItem = useCartStore((s) => s.addItem);
   const discount = calculateDiscount(product.regular_price, product.sale_price);
   const [justAdded, setJustAdded] = useState(false);
   const price = parseFloat(product.price);
-  const hasFreeShipping = price >= FREE_SHIPPING_THRESHOLD;
 
   const handleAddToCart = (e?: React.MouseEvent) => {
     if (e) { e.preventDefault(); e.stopPropagation(); }
@@ -30,7 +27,7 @@ export default function ProductCardHorizontal({ product, index = 0 }: ProductCar
     addItem(product);
     setJustAdded(true);
     toast.success(`${product.name} agregado al carrito`, {
-      description: hasFreeShipping ? '🚚 Incluye envío gratis' : undefined,
+      description: '🚚 Incluye envío GRATIS',
     });
     setTimeout(() => setJustAdded(false), 1800);
   };
@@ -96,12 +93,10 @@ export default function ProductCardHorizontal({ product, index = 0 }: ProductCar
             <span className="text-lg font-extrabold text-gray-900 font-display tracking-tight">
               {formatPrice(product.price)}
             </span>
-            {hasFreeShipping && (
-              <div className="flex items-center gap-1 text-emerald-600 mt-0.5">
-                <Truck className="w-3 h-3" />
-                <span className="text-[10px] font-semibold">Envío gratis</span>
-              </div>
-            )}
+            <div className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-1.5 py-0.5 mt-1 w-fit">
+              <Truck className="w-3 h-3" />
+              <span className="text-[10px] font-bold">Envío GRATIS</span>
+            </div>
           </div>
 
           {/* Add button */}

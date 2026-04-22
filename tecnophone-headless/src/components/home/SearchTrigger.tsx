@@ -122,12 +122,13 @@ export default function SearchTrigger() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setFocused(true)}
-          placeholder="Buscar productos, marcas..."
-          className="w-full bg-surface-100 rounded-2xl pl-10 pr-9 py-3 text-base text-gray-900 placeholder-surface-400 outline-none focus:bg-white focus:ring-2 focus:ring-primary-500/25 focus:border-primary-400 border border-transparent transition-all"
+          placeholder="¿Qué estás buscando hoy?"
+          className="w-full bg-surface-100/80 backdrop-blur-sm rounded-2xl pl-11 pr-10 py-3 text-base text-gray-900 placeholder-surface-500 outline-none focus:bg-white focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 border border-surface-200/60 hover:border-primary-300 hover:bg-white shadow-sm hover:shadow-md focus:shadow-md transition-all duration-200"
           autoComplete="off"
           enterKeyHint="search"
+          aria-label="Buscar productos en TecnoPhone"
         />
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-surface-400 pointer-events-none" />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-primary-500 pointer-events-none" strokeWidth={2.25} />
         {loading && (
           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-600 animate-spin" />
         )}

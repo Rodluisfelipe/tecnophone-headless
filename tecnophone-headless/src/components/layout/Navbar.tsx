@@ -101,10 +101,11 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-primary-600" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      <header className="sticky top-0 z-50">
         {/* Top promo bar — rotating, pauses on hover */}
         <div
           className="bg-primary-600 text-white py-1.5 text-center overflow-hidden"
+          style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.375rem)' }}
           onMouseEnter={() => setPromoPaused(true)}
           onMouseLeave={() => setPromoPaused(false)}
           onFocus={() => setPromoPaused(true)}
@@ -125,21 +126,25 @@ export default function Navbar() {
           className={cn(
             'border-b border-surface-200 transition-all duration-500',
             scrolled
-              ? 'bg-white/90 backdrop-blur-xl shadow-lg shadow-gray-200/60'
-              : 'bg-white/80 backdrop-blur-md'
+              ? 'bg-white lg:bg-white/90 backdrop-blur-xl shadow-lg shadow-gray-200/60'
+              : 'bg-white lg:bg-white/80 backdrop-blur-md'
           )}
         >
           <div className="container-custom">
             {/* ===== MOBILE HEADER ===== */}
-            <div className="lg:hidden flex items-center gap-2 py-2">
-              <Link href="/" className="flex-shrink-0">
+            <div className="lg:hidden flex items-center gap-2.5 py-2.5">
+              <Link
+                href="/"
+                className="flex-shrink-0 rounded-xl active:scale-90 transition-transform duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                aria-label="Ir al inicio TecnoPhone"
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/icons/logo-mobile.webp"
                   alt="TecnoPhone"
-                  width={36}
-                  height={36}
-                  className="w-9 h-9"
+                  width={40}
+                  height={40}
+                  className="w-10 h-10 drop-shadow-sm"
                 />
               </Link>
               <div className="flex-1 min-w-0">
@@ -147,12 +152,12 @@ export default function Navbar() {
               </div>
               <button
                 onClick={openCart}
-                className="relative flex-shrink-0 p-2 rounded-full text-surface-700 active:scale-90 transition-transform"
-                aria-label="Carrito de compras"
+                className="relative flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-surface-700 hover:text-primary-600 hover:bg-primary-50 active:scale-90 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                aria-label={`Carrito de compras${mounted && totalItems > 0 ? ` (${totalItems} productos)` : ''}`}
               >
-                <ShoppingCart className="w-5 h-5" />
+                <ShoppingCart className="w-5 h-5" strokeWidth={2.25} />
                 {mounted && totalItems > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 bg-primary-500 text-white text-[9px] font-black min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-0.5 shadow-sm">
+                  <span className="absolute top-1 right-1 bg-gradient-to-br from-primary-500 to-primary-600 text-white text-[10px] font-black min-w-[20px] h-[20px] rounded-full flex items-center justify-center px-1 shadow-md shadow-primary-500/40 ring-2 ring-white animate-in zoom-in-50 duration-300">
                     {totalItems > 9 ? '9+' : totalItems}
                   </span>
                 )}

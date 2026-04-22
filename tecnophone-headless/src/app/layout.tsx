@@ -6,6 +6,7 @@ import './globals.css';
 import Footer from '@/components/layout/Footer';
 import Navbar from '@/components/layout/Navbar';
 const CartDrawer = dynamic(() => import('@/components/layout/CartDrawer'), { ssr: false });
+const FreeShippingUnlock = dynamic(() => import('@/components/cart/FreeShippingUnlock'), { ssr: false });
 
 const ToasterProvider = dynamic(() => import('@/components/layout/ToasterProvider'), { ssr: false });
 const BottomNav = dynamic(() => import('@/components/layout/BottomNav'), { ssr: false });
@@ -94,6 +95,7 @@ export default function RootLayout({
         <main id="main-content" className="flex-1">{children}</main>
         <Footer />
         <CartDrawer />
+        <FreeShippingUnlock />
 
         <BottomNav />
         <AiChatBubble />

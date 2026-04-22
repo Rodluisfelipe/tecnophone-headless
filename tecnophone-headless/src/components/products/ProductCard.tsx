@@ -15,8 +15,6 @@ interface ProductCardProps {
   index?: number;
 }
 
-const FREE_SHIPPING_THRESHOLD = 500000;
-
 export default function ProductCard({ product, index = 0 }: ProductCardProps) {
   const addItem = useCartStore((s) => s.addItem);
   const discount = calculateDiscount(product.regular_price, product.sale_price);
@@ -24,7 +22,6 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
   const [justAdded, setJustAdded] = useState(false);
   const price = parseFloat(product.price);
   const monthlyPrice = price > 0 ? Math.round(price / 12) : 0;
-  const hasFreeShipping = price >= FREE_SHIPPING_THRESHOLD;
   const isFull = product.categories?.some((c) => c.slug === 'full');
   const displayCategory = product.categories?.find((c) => !['full', 'sin-categorizar', 'uncategorized'].includes(c.slug));
 
@@ -53,7 +50,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
               alt={product.images[0].alt || product.name}
               fill
               className={cn(
-                'object-contain p-6 transition-all duration-700 ease-out',
+                'object-contain p-2 sm:p-4 md:p-6 transition-all duration-700 ease-out',
                 hasSecondImage
                   ? 'group-hover:opacity-0 group-hover:scale-105'
                   : 'group-hover:scale-110'
@@ -66,7 +63,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
                 src={product.images[1].src}
                 alt={product.images[1].alt || product.name}
                 fill
-                className="object-contain p-6 opacity-0 group-hover:opacity-100 scale-105 group-hover:scale-100 transition-all duration-700 ease-out"
+                className="object-contain p-2 sm:p-4 md:p-6 opacity-0 group-hover:opacity-100 scale-105 group-hover:scale-100 transition-all duration-700 ease-out"
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               />
             )}
@@ -185,15 +182,15 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
               o desde <span className="text-surface-800 font-semibold">{formatPrice(monthlyPrice)}</span>/mes x 12
             </p>
           )}
-          {/* Shipping: full products get dynamic delivery badge, others get static envío gratis */}
+          {/* Shipping: full products get dynamic delivery badge, others get "Envío GRATIS" siempre */}
           {isFull ? (
             <DeliveryBadge categories={product.categories} variant="card" />
-          ) : hasFreeShipping ? (
-            <div className="flex items-center gap-1 text-emerald-600">
+          ) : (
+            <div className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-1.5 py-0.5 w-fit">
               <Truck className="w-3 h-3" />
-              <span className="text-[11px] font-semibold">Envío gratis</span>
+              <span className="text-[11px] font-bold">Envío GRATIS</span>
             </div>
-          ) : null}
+          )}
         </div>
 
         {/* Add to cart / External link button */}

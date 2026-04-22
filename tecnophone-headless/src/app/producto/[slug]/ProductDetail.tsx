@@ -926,10 +926,10 @@ export default function ProductDetail({ product, relatedProducts }: Props) {
             {/* Trust badges grid */}
             <div className="grid grid-cols-2 gap-3">
               {[
-                { icon: Truck, label: 'Envío Gratis', sub: 'En computadores', color: 'text-blue-600', bg: 'bg-blue-500/10' },
                 { icon: Shield, label: 'Garantía', sub: '1 Año con Fabricante', color: 'text-emerald-600', bg: 'bg-emerald-500/10' },
                 { icon: Lock, label: 'Pago Seguro', sub: '100% Protegido', color: 'text-violet-600', bg: 'bg-violet-500/10' },
                 { icon: Headphones, label: 'Soporte 24/7', sub: 'Asistencia técnica', color: 'text-amber-500', bg: 'bg-amber-500/10' },
+                { icon: Check, label: 'Factura Electrónica', sub: 'DIAN autorizada', color: 'text-blue-600', bg: 'bg-blue-500/10' },
               ].map((badge) => {
                 const Icon = badge.icon;
                 return (
