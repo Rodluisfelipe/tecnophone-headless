@@ -21,6 +21,7 @@ import {
   Flame,
   Building2,
 } from 'lucide-react';
+import LeadTrustItem from '@/components/lead/LeadTrustItem';
 import dynamic from 'next/dynamic';
 import { getProducts, getBanners, getCategories, getBrands, formatPrice, calculateDiscount } from '@/lib/woocommerce';
 import ProductCard from '@/components/products/ProductCard';
@@ -216,7 +217,7 @@ export default async function HomePage() {
             </Link>
           </div>
           {/* Desktop: grid with dividers */}
-          <div className="hidden lg:grid grid-cols-5 divide-x divide-surface-200">
+          <div className="hidden lg:grid grid-cols-6 divide-x divide-surface-200">
             {[
               { icon: Truck, text: 'Envío a todo Colombia' },
               { icon: Shield, text: 'Garantía oficial' },
@@ -231,6 +232,7 @@ export default async function HomePage() {
                 </div>
               );
             })}
+            <LeadTrustItem />
             <Link
               href="/contacto"
               className="flex items-center justify-center gap-3 py-5 text-orange-600 hover:bg-orange-50 transition-colors group"

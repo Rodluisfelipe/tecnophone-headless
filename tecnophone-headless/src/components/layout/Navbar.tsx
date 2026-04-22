@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils';
 import TrackingModal from '@/components/tracking/TrackingModal';
 import SearchTrigger from '@/components/home/SearchTrigger';
 import InstantSearch, { type InstantSearchHandle } from '@/components/search/InstantSearch';
+import LeadNavTrigger from '@/components/lead/LeadNavTrigger';
 
 const categories = [
   { name: 'Portátiles', slug: 'portatiles-2', icon: Laptop, desc: 'HP, Dell, Lenovo y más' },
@@ -150,6 +151,7 @@ export default function Navbar() {
               <div className="flex-1 min-w-0">
                 <SearchTrigger />
               </div>
+              <LeadNavTrigger variant="mobile" />
               <button
                 onClick={openCart}
                 className="relative flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-surface-700 hover:text-primary-600 hover:bg-primary-50 active:scale-90 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
@@ -284,6 +286,8 @@ export default function Navbar() {
                   <Shield className="w-4 h-4" />
                   <span>Garantía</span>
                 </a>
+
+                <LeadNavTrigger variant="desktop" />
 
                 <button
                   onClick={openCart}

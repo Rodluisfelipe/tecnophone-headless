@@ -7,6 +7,7 @@ import Footer from '@/components/layout/Footer';
 import Navbar from '@/components/layout/Navbar';
 const CartDrawer = dynamic(() => import('@/components/layout/CartDrawer'), { ssr: false });
 const FreeShippingUnlock = dynamic(() => import('@/components/cart/FreeShippingUnlock'), { ssr: false });
+const LeadCaptureModal = dynamic(() => import('@/components/lead/LeadCaptureModal'), { ssr: false });
 
 const ToasterProvider = dynamic(() => import('@/components/layout/ToasterProvider'), { ssr: false });
 const BottomNav = dynamic(() => import('@/components/layout/BottomNav'), { ssr: false });
@@ -96,6 +97,7 @@ export default function RootLayout({
         <Footer />
         <CartDrawer />
         <FreeShippingUnlock />
+        <LeadCaptureModal />
 
         <BottomNav />
         <AiChatBubble />

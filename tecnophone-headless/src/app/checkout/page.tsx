@@ -69,6 +69,29 @@ export default function CheckoutPage() {
     note: '',
   });
 
+  // Pre-llenar con datos capturados del lead (envío gratis)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = window.localStorage.getItem('tp-lead');
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      const lead = parsed?.state?.lead;
+      if (!lead) return;
+      const parts = (lead.name || '').trim().split(/\s+/);
+      const first = parts[0] || '';
+      const last = parts.slice(1).join(' ');
+      setForm((prev) => ({
+        ...prev,
+        first_name: prev.first_name || first,
+        last_name: prev.last_name || last,
+        phone: prev.phone || lead.phone || '',
+      }));
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
