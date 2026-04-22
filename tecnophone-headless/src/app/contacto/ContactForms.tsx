@@ -169,6 +169,7 @@ export default function ContactForms({ variant }: ContactFormsProps) {
           <option value="Estado de mi pedido">📦 Estado de mi pedido</option>
           <option value="Información de producto">🛍️ Información de producto</option>
           <option value="Compras corporativas">🏢 Compras corporativas</option>
+          <option value="Sector gobierno - Acuerdo Marco de Precios">🏛️ Sector gobierno · Acuerdo Marco de Precios</option>
           <option value="Devolución / cambio">🔄 Devolución / cambio</option>
           <option value="Otra">💬 Otra</option>
         </select>

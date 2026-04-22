@@ -18,8 +18,8 @@ import ContactForms from './ContactForms';
 
 const WA_NUMBER = '573132294533';
 const WA_MSG = 'Hola%20TecnoPhone%2C%20vengo%20de%20la%20p%C3%A1gina%20de%20contacto';
-const PHONE = '+573132294533';
-const PHONE_DISPLAY = '+57 313 229 4533';
+const PHONE = '3132294533';
+const PHONE_DISPLAY = '313 229 4533';
 const EMAIL = 'ventas@tecnophone.co';
 
 type Tab = 'callback' | 'ticket';
